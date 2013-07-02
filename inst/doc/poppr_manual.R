@@ -751,7 +751,6 @@ nan5 <- ia(popsub(nancycats, 5), sample=999, quiet=TRUE)
 ###################################################
 ## set.seed(1001)
 ## ia(popsub(nancycats, 5), sample=999, method=3, quiet=TRUE, hist=FALSE)
-## c(simplenan[1], p.Ia = 0.589, simplenan[2], p.rD = 0.589)
 
 
 ###################################################
@@ -788,7 +787,7 @@ c(A.dum[1], p.Ia = 0.001, A.dum[2], p.rD = 0.001)
 
 
 ###################################################
-### code chunk number 109: poppr_manual.Rnw:1205-1208
+### code chunk number 109: poppr_manual.Rnw:1204-1207
 ###################################################
 data(Aeut)
 A.dist <- diss.dist(Aeut)
@@ -809,7 +808,7 @@ heatmap(as.matrix(dist9), symm=TRUE)
 
 
 ###################################################
-### code chunk number 112: poppr_manual.Rnw:1242-1243
+### code chunk number 112: poppr_manual.Rnw:1241-1242
 ###################################################
 heatmap(as.matrix(dist9), symm=TRUE)
 
@@ -1001,7 +1000,7 @@ cbind(sim_ex[1:10],list(p.Ia = c(0.09), sim_ex[11], list(p.rD = c(0.09), sim_ex[
 
 
 ###################################################
-### code chunk number 138: poppr_manual.Rnw:1624-1628
+### code chunk number 138: poppr_manual.Rnw:1623-1627
 ###################################################
 df <- data.frame(list(locus1=c("101/101", "102/103", "102/102"), 
                       locus2=c("201/201","202/203","203/204"), 
@@ -1010,13 +1009,13 @@ df
 
 
 ###################################################
-### code chunk number 139: poppr_manual.Rnw:1631-1632
+### code chunk number 139: poppr_manual.Rnw:1630-1631
 ###################################################
 dfg@tab[, 1:3]
 
 
 ###################################################
-### code chunk number 140: poppr_manual.Rnw:1641-1644
+### code chunk number 140: poppr_manual.Rnw:1640-1643
 ###################################################
 abs(dfg@tab[1, 1:3] - dfg@tab[2, 1:3])
 abs(dfg@tab[1, 1:3] - dfg@tab[3, 1:3])

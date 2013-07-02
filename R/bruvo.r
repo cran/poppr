@@ -79,16 +79,16 @@
 #'
 #' # Load the nancycats dataset and construct the repeat vector.
 #' data(nancycats)
-#' ssr <- rep(1,9)
+#' ssr <- rep(2, 9)
 #' 
 #' # Analyze the 1st population in nancycats
 #'
-#' bruvo.dist(popsub(nancycats, 1), replen=ssr)
+#' bruvo.dist(popsub(nancycats, 1), replen = ssr)
 #'
 #' # View each population as a heatmap.
 #' \dontrun{
 #' sapply(nancycats$pop.names, function(x) 
-#' heatmap(as.matrix(bruvo.dist(popsub(nancycats, x))), symm=TRUE))
+#' heatmap(as.matrix(bruvo.dist(popsub(nancycats, x), replen = ssr)), symm=TRUE))
 #' }
 #==============================================================================#
 #' @useDynLib poppr
@@ -113,7 +113,7 @@ bruvo.dist <- function(pop, replen=c(2)){
   
   # This controlls for the user correcting missing data using "mean". 
   if(any(!pop@tab %in% c(0,((1:ploid)/ploid),1, NA))){
-    pop@tab[!pop@tab,10 %in% c(0,((1:ploid)/ploid),1, NA)] <- NA
+    pop@tab[!pop@tab %in% c(0,((1:ploid)/ploid),1, NA)] <- NA
   }
   if(any(rowSums(pop@tab, na.rm=TRUE) < nLoc(pop))){
     
@@ -131,7 +131,7 @@ bruvo.dist <- function(pop, replen=c(2)){
   # Dividing the data by the repeat length of each locus.
 
   pop <- pop / rep(replen, each=ploid*nrow(pop))
-  pop <- matrix(as.integer(pop), ncol=popcols)
+  pop <- matrix(round(pop), ncol=popcols)
   # Getting the permutation vector.
   perms <- .Call("permuto", ploid)
   # Calculating bruvo's distance over each locus. 
@@ -236,8 +236,8 @@ bruvo.boot <- function(pop, replen = c(2), sample = 100, tree = "upgma",
     cat(replen,"\n\n")
   }
   # This controlls for the user correcting missing data using "mean". 
-  if(any(!round(pop@tab,10) %in% c(0,((1:ploid)/ploid),1, NA))){
-    pop@tab[!round(pop@tab,10) %in% c(0,((1:ploid)/ploid),1, NA)] <- NA
+  if(any(!pop@tab %in% c(0,((1:ploid)/ploid),1, NA))){
+    pop@tab[!pop@tab %in% c(0,((1:ploid)/ploid),1, NA)] <- NA
   }
   # Converting the genind object into a matrix with each allele separated by "/"
   bar <- as.matrix(genind2df(pop, sep="/", usepop=FALSE))
@@ -412,7 +412,7 @@ bruvo.msn <- function (pop, replen = c(1), palette = topo.colors,
     cpop <- pop[.clonecorrector(pop), ]
     mlg.number <- table(pop$other$mlg.vec)[rank(cpop$other$mlg.vec)]
     bclone <- bruvo.dist(cpop, replen=replen)
-    mclone<-as.dist(bclone)
+    mclone <- as.dist(bclone)
     #attr(bclone, "Labels") <- paste("MLG.", cpop$other$mlg.vec, sep="")
     g <- graph.adjacency(as.matrix(bclone),weighted=TRUE,mode="undirected")
     mst <- (minimum.spanning.tree(g,algorithm="prim",weights=E(g)$weight))
