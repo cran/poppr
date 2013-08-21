@@ -1,3 +1,31 @@
+poppr 1.0.3
+===========
+IMPROVEMENTS
+* Optimized internal sampling function to run up to 2x faster.
+* Utilized rmultinom function to increase speed of bootstrap sampling methods for shufflepop and ia. 
+
+NEW FEATURES
+* Function `informloci` will remove phylogenetically uninformative loci.
+
+NAMESPACE
+* Now importing specific functions from igraph and ape due to dependency issues.
+* Removed igraph, ape, ggplot2, and phangorn form "Dependencies", but keeping them in "Imports".
+
+BUG FIXES
+* `read.genalex` will no longer insert an "X" in front of loci with numeric names. 
+
+poppr 1.0.2
+===========
+BUG FIXES
+* Fixed bug in diss.dist function that would return an inflated distance for haploids.
+
+DOCUMENTATION
+* Added explaination for the index of association in poppr_manual.
+* Expanded installation section to include installation instructions from github.
+
+MISC
+* internal permutation algorithm no longer lists permutations in reverse order
+
 poppr 1.0.1
 ===========
 IMPROVEMENTS
