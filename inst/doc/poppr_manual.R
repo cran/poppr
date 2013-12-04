@@ -29,14 +29,14 @@
 ### code chunk number 5: install_github (eval = FALSE)
 ###################################################
 ## library(devtools)
-## install_github("poppr", "poppr")
+## install_github(repo = "grunwaldlab/poppr")
 
 
 ###################################################
 ### code chunk number 6: install_devel (eval = FALSE)
 ###################################################
 ## library(devtools)
-## install_github("poppr", "poppr", ref = "devel")
+## install_github(repo = "grunwaldlab/poppr", ref = "devel")
 
 
 ###################################################
@@ -646,6 +646,7 @@ summary(H.year) # Check the data to make sure it's correct.
 ###################################################
 ### code chunk number 90: mlgrare2 (eval = FALSE)
 ###################################################
+## library(vegan)
 ## H.year <- mlg.table(H.year, bar=FALSE)
 ## rarecurve(H.year, ylab="Multilocus genotypes expected", sample=min(rowSums(H.year)))
 
@@ -653,6 +654,7 @@ summary(H.year) # Check the data to make sure it's correct.
 ###################################################
 ### code chunk number 91: mlgrareplot
 ###################################################
+library(vegan)
 H.year <- mlg.table(H.year, bar=FALSE)
 rarecurve(H.year, ylab="Multilocus Genotypes Expected", sample=min(rowSums(H.year)))
 
@@ -699,14 +701,14 @@ mlg.table(H3N2, sublist="Norway", mlgsub=UGNN)
 
 
 ###################################################
-### code chunk number 98: poppr_manual.Rnw:1105-1107
+### code chunk number 98: poppr_manual.Rnw:1107-1109
 ###################################################
 H.vec[1:22]
 mlg.vector(H.sub)
 
 
 ###################################################
-### code chunk number 99: poppr_manual.Rnw:1111-1114
+### code chunk number 99: poppr_manual.Rnw:1113-1116
 ###################################################
 H3N2@other$MLG.vector <- H.vec
 H.sub <- H3N2[H.vec %in% UGNN, ]
@@ -721,10 +723,10 @@ H.sub@other$MLG.vector
 
 
 ###################################################
-### code chunk number 101: df hashing_echo (eval = FALSE)
+### code chunk number 101: df hashing_eval
 ###################################################
-## H.df <- genind2df(H3N2[, loc=names(H3N2@loc.names)[1:15]])
-## H.df[H.vec %in% UGNN, 1:15] # Showing only 15 columns becaus it is a large dataset.
+H.df <- genind2df(H3N2[, loc=names(H3N2@loc.names)[1:15]])
+H.df[H.vec %in% UGNN, 1:15] # Showing only 15 columns becaus it is a large dataset.
 
 
 ###################################################
@@ -742,7 +744,7 @@ names(df)
 
 
 ###################################################
-### code chunk number 104: poppr_manual.Rnw:1145-1148
+### code chunk number 104: poppr_manual.Rnw:1147-1150
 ###################################################
 H.max <- names(sort(H.num, decreasing=TRUE)[1:10])
 # Showing the data frame by the largest MLG complex.
@@ -781,7 +783,7 @@ c(simplenan[1], p.Ia = 0.589, simplenan[2], p.rD = 0.589)
 
 
 ###################################################
-### code chunk number 109: poppr_manual.Rnw:1216-1218
+### code chunk number 109: poppr_manual.Rnw:1218-1220
 ###################################################
 set.seed(1001)
 nan5 <- ia(popsub(nancycats, 5), sample=999, quiet=TRUE)
@@ -828,7 +830,7 @@ c(A.dum[1], p.Ia = 0.001, A.dum[2], p.rD = 0.001)
 
 
 ###################################################
-### code chunk number 115: poppr_manual.Rnw:1274-1277
+### code chunk number 115: poppr_manual.Rnw:1276-1279
 ###################################################
 data(Aeut)
 A.dist <- diss.dist(Aeut)
@@ -849,7 +851,7 @@ heatmap(as.matrix(dist9), symm=TRUE)
 
 
 ###################################################
-### code chunk number 118: poppr_manual.Rnw:1311-1312
+### code chunk number 118: poppr_manual.Rnw:1313-1314
 ###################################################
 heatmap(as.matrix(dist9), symm=TRUE)
 
@@ -903,31 +905,41 @@ cat("\nBootstrapping... (note: calculation of node labels can take a while even 
 
 
 ###################################################
-### code chunk number 125: greycurve_normal
+### code chunk number 125: bruvo_tree
+###################################################
+ set.seed(1001)
+ nan9tree <- phangorn::upgma(bruvo.dist(popsub(nancycats, 8:9), replen = rep(1, 9)))
+ nan9tree$node.labels <- c(100, NA, NA, NA, NA, 66, NA, NA, NA, NA, NA, 78, NA, 61, NA, NA, NA, NA)
+ ape::plot.phylo(nan9tree, show.node.label=TRUE)
+ ape::axisPhylo(3)
+
+
+###################################################
+### code chunk number 126: greycurve_normal
 ###################################################
 greycurve()
 
 
 ###################################################
-### code chunk number 126: greywidth_inverse
+### code chunk number 127: greywidth_inverse
 ###################################################
 greycurve(gweight = 2)
 
 
 ###################################################
-### code chunk number 127: greycurve_small_heavy
+### code chunk number 128: greycurve_small_heavy
 ###################################################
 greycurve(glim = c(0.2, 0.9), gadj=15)
 
 
 ###################################################
-### code chunk number 128: greywidth_large_heavy
+### code chunk number 129: greywidth_large_heavy
 ###################################################
 greycurve(glim = c(0.2, 0.9), gadj=15, gweight=2)
 
 
 ###################################################
-### code chunk number 129: bruvo_msn_code (eval = FALSE)
+### code chunk number 130: bruvo_msn_code (eval = FALSE)
 ###################################################
 ## data(partial_clone)
 ## set.seed(9005)
@@ -936,7 +948,7 @@ greycurve(glim = c(0.2, 0.9), gadj=15, gweight=2)
 
 
 ###################################################
-### code chunk number 130: bruvo_msn
+### code chunk number 131: bruvo_msn
 ###################################################
 data(partial_clone)
 set.seed(9005)
@@ -945,14 +957,14 @@ pc.msn <- bruvo.msn(partial_clone, replen=rep(1, 10), vertex.label.cex=0.7,
 
 
 ###################################################
-### code chunk number 131: bruvo_msn_igraph
+### code chunk number 132: bruvo_msn_igraph
 ###################################################
 library(igraph)
 pc.msn
 
 
 ###################################################
-### code chunk number 132: bruvo_msn_reconstruct (eval = FALSE)
+### code chunk number 133: bruvo_msn_reconstruct (eval = FALSE)
 ###################################################
 ## set.seed(9005)
 ## library(igraph)
@@ -963,7 +975,7 @@ pc.msn
 
 
 ###################################################
-### code chunk number 133: poppr_msn (eval = FALSE)
+### code chunk number 134: poppr_msn (eval = FALSE)
 ###################################################
 ## data(Aeut)
 ## A.dist <- diss.dist(Aeut)
@@ -972,7 +984,7 @@ pc.msn
 
 
 ###################################################
-### code chunk number 134: poppr_msn_fig
+### code chunk number 135: poppr_msn_fig
 ###################################################
 data(Aeut)
 A.dist <- diss.dist(Aeut)
@@ -981,62 +993,62 @@ A.msn <- poppr.msn(Aeut, A.dist, vertex.label=NA, palette=rainbow, gadj=15)
 
 
 ###################################################
-### code chunk number 135: Aeut_rehash
+### code chunk number 136: Aeut_rehash
 ###################################################
 data(Aeut)
 poppr(Aeut)
 
 
 ###################################################
-### code chunk number 136: Aeut_sample (eval = FALSE)
+### code chunk number 137: Aeut_sample (eval = FALSE)
 ###################################################
 ## poppr(Aeut, sample=999, hist=FALSE, quiet=TRUE)
 
 
 ###################################################
-### code chunk number 137: Aeut_sample_show
+### code chunk number 138: Aeut_sample_show
 ###################################################
 none1 <- poppr(Aeut, hist=FALSE, quiet=TRUE)
 cbind(none1[1:10],list(p.Ia = rep(0.001, 3)), none1[11], list(p.rD = rep(0.001, 3)), none1[12])
 
 
 ###################################################
-### code chunk number 138: Aeut_cc_sub_show (eval = FALSE)
+### code chunk number 139: Aeut_cc_sub_show (eval = FALSE)
 ###################################################
 ## poppr(Aeut, sample=999, clonecorrect=TRUE, hier=c("Pop","Subpop"), 
 ##       dfname="population_hierarchy", quiet=TRUE, hist=FALSE)
 
 
 ###################################################
-### code chunk number 139: Aeut_cc_sub
+### code chunk number 140: Aeut_cc_sub
 ###################################################
 sub1 <- poppr(Aeut, clonecorrect=TRUE, hier=c("Pop","Subpop"), dfname="population_hierarchy", quiet=TRUE, hist=FALSE)
 cbind(sub1[1:10],list(p.Ia = rep(0.001, 3)), sub1[11], list(p.rD = rep(0.001, 3)), sub1[12])
 
 
 ###################################################
-### code chunk number 140: Aeut_cc_pop_show (eval = FALSE)
+### code chunk number 141: Aeut_cc_pop_show (eval = FALSE)
 ###################################################
 ## poppr(Aeut, sample=999, clonecorrect=TRUE, hier="Pop", 
 ##       dfname="population_hierarchy", quiet=TRUE, hist=FALSE)
 
 
 ###################################################
-### code chunk number 141: Aeut_cc_pop
+### code chunk number 142: Aeut_cc_pop
 ###################################################
 pop1 <- poppr(Aeut, sample=0, clonecorrect=TRUE, hier="Pop", dfname="population_hierarchy", quiet=TRUE, hist=FALSE)
 cbind(pop1[1:10],list(p.Ia = rep(0.001, 3)), pop1[11], list(p.rD = rep(0.001, 3)), pop1[12])
 
 
 ###################################################
-### code chunk number 142: nancy_example_show (eval = FALSE)
+### code chunk number 143: nancy_example_show (eval = FALSE)
 ###################################################
 ## set.seed(2001)
 ## poppr(nancycats, sublist=5:6, total=FALSE, sample=999, method=3, quiet=TRUE, hist=FALSE)
 
 
 ###################################################
-### code chunk number 143: nancy_example_show
+### code chunk number 144: nancy_example_eval
 ###################################################
 set.seed(2001)
 nan_ex <- poppr(nancycats, sublist=5:6, total=FALSE, sample=0, method=3, quiet=TRUE, hist=FALSE)
@@ -1044,14 +1056,14 @@ cbind(nan_ex[1:10],list(p.Ia = c(0.599, 0.064), nan_ex[11], list(p.rD = c(0.599,
 
 
 ###################################################
-### code chunk number 144: simulated_dist (eval = FALSE)
+### code chunk number 145: simulated_dist (eval = FALSE)
 ###################################################
 ## set.seed(2004)
 ## poppr(system.file("files/simulated.dat", package="poppr"), sample=999, method=1, quiet=TRUE)
 
 
 ###################################################
-### code chunk number 145: simulated_dist_out
+### code chunk number 146: simulated_dist_out
 ###################################################
 set.seed(2004)
 sim_ex <- poppr(system.file("files/simulated.dat", package="poppr"), sample=0, method=1, quiet=TRUE, hist=FALSE)
@@ -1059,7 +1071,7 @@ cbind(sim_ex[1:10],list(p.Ia = c(0.09), sim_ex[11], list(p.rD = c(0.09), sim_ex[
 
 
 ###################################################
-### code chunk number 146: poppr_manual.Rnw:1709-1713
+### code chunk number 147: poppr_manual.Rnw:1714-1718
 ###################################################
 df <- data.frame(list(locus1=c("101/101", "102/103", "102/102"), 
                       locus2=c("201/201","202/203","203/204"), 
@@ -1068,13 +1080,13 @@ df
 
 
 ###################################################
-### code chunk number 147: poppr_manual.Rnw:1716-1717
+### code chunk number 148: poppr_manual.Rnw:1721-1722
 ###################################################
 dfg@tab[, 1:3]
 
 
 ###################################################
-### code chunk number 148: poppr_manual.Rnw:1726-1729
+### code chunk number 149: poppr_manual.Rnw:1731-1734
 ###################################################
 abs(dfg@tab[1, 1:3] - dfg@tab[2, 1:3])
 abs(dfg@tab[1, 1:3] - dfg@tab[3, 1:3])
@@ -1082,7 +1094,7 @@ abs(dfg@tab[2, 1:3] - dfg@tab[3, 1:3])
 
 
 ###################################################
-### code chunk number 149: ggsave1 (eval = FALSE)
+### code chunk number 150: ggsave1 (eval = FALSE)
 ###################################################
 ## data(nancycats) # Load the data set.
 ## poppr(nancycats, sublist=5, sample=999) # Produce a single plot.
@@ -1090,7 +1102,7 @@ abs(dfg@tab[2, 1:3] - dfg@tab[3, 1:3])
 
 
 ###################################################
-### code chunk number 150: png_save (eval = FALSE)
+### code chunk number 151: png_save (eval = FALSE)
 ###################################################
 ## data(H3N2)
 ## pop(H3N2) <- H3N2$other$x$country
@@ -1102,7 +1114,7 @@ abs(dfg@tab[2, 1:3] - dfg@tab[3, 1:3])
 
 
 ###################################################
-### code chunk number 151: pdf_save (eval = FALSE)
+### code chunk number 152: pdf_save (eval = FALSE)
 ###################################################
 ## pdf("H3N2_barcharts.png", width = 14, height = 14, compress = FALSE)
 ## H.tab <- mlg.table(H3N2)
