@@ -72,6 +72,12 @@
 #'
 #' @export
 #' @author Zhian N. Kamvar
+#'
+#' @references
+#' Ruzica Bruvo, Nicolaas K. Michiels, Thomas G. D'Souza, and Hinrich Schulenburg. A
+#' simple method for the calculation of microsatellite genotype distances irrespective
+#' of ploidy level. Molecular Ecology, 13(7):2101-2106, 2004.
+#'
 #' @examples
 #' # Please note that the data presented is assuming that the nancycat dataset 
 #' # contains all dinucleotide repeats, it most likely is not an accurate
@@ -199,6 +205,12 @@ bruvo.dist <- function(pop, replen=c(2)){
 #'
 #' @export
 #' @author Javier F. Tabima, Zhian N. Kamvar
+#'
+#' @references
+#' Ruzica Bruvo, Nicolaas K. Michiels, Thomas G. D'Souza, and Hinrich Schulenburg. A
+#' simple method for the calculation of microsatellite genotype distances irrespective
+#' of ploidy level. Molecular Ecology, 13(7):2101-2106, 2004.
+#'
 #' @examples
 #' # Please note that the data presented is assuming that the nancycat dataset 
 #' # contains all dinucleotide repeats, it most likely is not an accurate
@@ -248,32 +260,22 @@ bruvo.boot <- function(pop, replen = c(2), sample = 100, tree = "upgma",
   # analysis, and then place the support labels on the tree.
   if(tree == "upgma"){
     # require(phangorn)
+    root <- TRUE
     newfunk <- match.fun(upgma)
   }
   else if(tree == "nj"){
+    root <- FALSE
     newfunk <- match.fun(nj)
   }
   tre <- newfunk(phylo.bruvo.dist(bar, replen=replen, ploid=ploid))
   if (any (tre$edge.length < 0)){
-    warning("The branch lengths of the tree are negative.", immediate.=TRUE)
-    us.promp<- as.numeric(readline(prompt="What do you want to do?, You can:\n1. Stop the analysis\n2. Convert negative branch values to Zero (Not biologically relevant)\nEnter your Selection:"))
-    if (us.promp == 1){
-      cat("Analysis stopped due to negative branches in the resulting tree\n")
-      return(tre)
-      stop()
-    }
-    else if (us.promp == 2){
-      tre$edge.length[tre$edge.length < 0] <- 0
-    }
-    else{
-      cat("Non-valid option. Returning tree.\n")
-      return(tre)
-    }
+    warning("Some branch lengths of the tree are negative. Normalizing branches according to Kuhner and Felsenstein (1994)", immediate.=TRUE)
+	tre <- fix_negative_branch(tre)
   }
   if(quiet == FALSE){
     cat("\nBootstrapping... (note: calculation of node labels can take a while even after the progress bar is full)\n\n")
   }
-  bp <- boot.phylo(tre, bar, FUN = function (x) newfunk(phylo.bruvo.dist(x, replen = replen, ploid = ploid)), B = sample, quiet=quiet, ...)
+  bp <- boot.phylo(tre, bar, FUN = function (x) newfunk(phylo.bruvo.dist(x, replen = replen, ploid = ploid)), B = sample, quiet = quiet, rooted = root, ...)
   tre$node.labels <- round(((bp / sample)*100))
   if (!is.null(cutoff)){
     if (cutoff < 1 | cutoff > 100){
@@ -358,6 +360,12 @@ bruvo.boot <- function(pop, replen = c(2), sample = 100, tree = "upgma",
 #' 
 #' @export
 #' @author Javier F. Tabima, Zhian N. Kamvar
+#'
+#' @references
+#' Ruzica Bruvo, Nicolaas K. Michiels, Thomas G. D'Souza, and Hinrich Schulenburg. A
+#' simple method for the calculation of microsatellite genotype distances irrespective
+#' of ploidy level. Molecular Ecology, 13(7):2101-2106, 2004.
+#'
 #' @examples
 #' 
 #' # Load the data set.
@@ -510,12 +518,22 @@ bruvo.msn <- function (pop, replen = c(1), palette = topo.colors,
   }
   # This creates a list of colors corresponding to populations.
   mlg.color <- lapply(mlg.cp, function(x) color[pop@pop.names %in% names(x)])
-  
+  # def.par <- par(no.readonly = TRUE)
+  # layout(matrix(1:3,ncol=3), width = c(1,3,1))
+  # gcol <- gray(adjustcurve(sort(E(mst)$weight), glim=glim, correction=gadj, 
+  #                                    show=FALSE))
+  # plot(c(0,2),c(0,1),type = 'n', axes = F,xlab = '', ylab = '', main = 'GREY')
+
   plot(mst, edge.width = edgewidth, edge.color = E(mst)$color, 
        vertex.size = mlg.number*3, vertex.shape = "pie", vertex.pie = mlg.cp, 
        vertex.pie.color = mlg.color, vertex.label = vertex.label, ...)
-  legend(-1.55 ,1 ,bty = "n", cex = 0.75, legend = pop$pop.names, 
+  legend(-1.55, 1, bty = "n", cex = 0.75, legend = pop$pop.names, 
          title = "Populations", fill = color, border = NULL)
+  # legend_image <- as.raster(matrix(gcol, ncol=1))
+  # plot(c(0,2),c(0,1),type = 'n', axes = F,xlab = '', ylab = '', main = 'GREY')
+  # text(x= 1.5, y = seq(0,1,l=5), labels = round(quantile(E(mst)$weight), 3))
+  # rasterImage(legend_image, 0, 0, 1,1)
+  # par(def.par)
   E(mst)$width <- edgewidth
   V(mst)$size <- mlg.number
   V(mst)$shape <- "pie"

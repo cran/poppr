@@ -44,9 +44,33 @@
 
 
 
+pair_ia <- function(pop){
 
+  if(pop@type == "codom"){
+    pop_loci <- seploc(pop)
+    loci_pairs <- combn(pop@loc.names, 2)
+    pair_ia_vector <- apply(loci_pairs, 2, function(x) .Ia.Rd(pop_loci[x]))
+    colnames(pair_ia_vector) <- apply(loci_pairs, 2, paste, collapse = ":")
+  }
+  else{
+    loci_pairs <- combn(1:nLoc(pop), 2)
+    pair_ia_vector <- apply(loci_pairs, 2, function(x) .PA.Ia.Rd(pop[, x], missing = "ignore"))
+    colnames(pair_ia_vector) <- apply(combn(pop@loc.names, 2), 2, paste, collapse = ":")
+  }
+  rownames(pair_ia_vector) <- c("Ia", "rbarD")    
+  return(pair_ia_vector)
+}
 
-
+poppr_pair_ia <- function(pop){
+  if(is.null(pop(pop))){
+    return(pair_ia(pop))
+  }
+  pops <- seppop(pop, drop = FALSE)
+  loci_pairs <- choose(nLoc(pop), 2)
+  res_mat <- matrix(0.5, 2, loci_pairs)
+  pops_array <- vapply(pops, pair_ia, res_mat)
+  return(pops_array)
+}
 
 
 
@@ -163,13 +187,13 @@ new.poppr <- function(pop,total=TRUE,sublist=c("ALL"),blacklist=c(NULL), sample=
 
     MLG.vec <- vapply(sublist, function(x) mlg(poplist[[x]], quiet=TRUE), 1)
     N.vec <- vapply(sublist, function(x) length(poplist[[x]]@ind.names), 1)
-    # Shannon-Weiner vegan:::diversity index.
-    H <- vegan:::diversity(pop.mat)
+    # Shannon-Weiner vegan::diversity index.
+    H <- vegan::diversity(pop.mat)
     # E_1, Pielou's evenness.
     # J <- H / log(rowSums(pop.mat > 0))
     # inverse Simpson's index aka Stoddard and Taylor: 1/lambda
-    G <- vegan:::diversity(pop.mat, "inv")
-    Hexp <- (N.vec/(N.vec-1))*vegan:::diversity(pop.mat, "simp")
+    G <- vegan::diversity(pop.mat, "inv")
+    Hexp <- (N.vec/(N.vec-1))*vegan::diversity(pop.mat, "simp")
     # E_5
     E.5 <- (G-1)/(exp(H)-1)
     # rarefaction giving the standard errors. This will use the minimum pop size
@@ -213,13 +237,13 @@ new.poppr <- function(pop,total=TRUE,sublist=c("ALL"),blacklist=c(NULL), sample=
   else { 
     MLG.vec <- mlg(pop, quiet=TRUE)
     N.vec <- length(pop@ind.names)
-    # Shannon-Weiner vegan:::diversity index.
-    H <- vegan:::diversity(pop.mat)
+    # Shannon-Weiner vegan::diversity index.
+    H <- vegan::diversity(pop.mat)
     # E_1, Pielou's evenness.
     # J <- H / log(rowSums(pop.mat > 0))
     # inverse Simpson's index aka Stoddard and Taylor: 1/lambda
-    G <- vegan:::diversity(pop.mat, "inv")
-    Hexp <- (N.vec/(N.vec-1))*vegan:::diversity(pop.mat, "simp")
+    G <- vegan::diversity(pop.mat, "inv")
+    Hexp <- (N.vec/(N.vec-1))*vegan::diversity(pop.mat, "simp")
     # E_5
     E.5 <- (G-1)/(exp(H)-1)
     # rarefaction giving the standard errors. No population structure means that
@@ -459,14 +483,6 @@ genoid.bruvo.boot <- function(pop, replen=c(2), sample = 100, tree = "upgma",
   }
   return(tre)
 }
-
-
-
-
-
-
-
-
 
 javier<-function(x){
   cat ("http://www.youtube.com/watch?v=1-ctsxVXvO0")

@@ -152,6 +152,48 @@
 #'
 #' @export
 #' @author Zhian N. Kamvar
+#' @references  Paul-Michael Agapow and Austin Burt. Indices of multilocus 
+#' linkage disequilibrium. \emph{Molecular Ecology Notes}, 1(1-2):101-102, 2001
+#' 
+#' A.H.D. Brown, M.W. Feldman, and E. Nevo. Multilocus structure of natural 
+#' populations of hordeum spontaneum. \emph{Genetics}, 96(2):523-536, 1980.
+#'
+#' Niklaus J. Gr\"unwald, Stephen B. Goodwin, Michael G. Milgroom, and William E. Fry.
+#' Analysis of genotypic diversity data for populations of microorganisms. 
+#' Phytopathology, 93(6):738-46, 2003
+#'
+#' Bernhard Haubold and Richard R. Hudson. Lian 3.0: detecting linkage disequilibrium
+#' in multilocus data. Bioinformatics, 16(9):847-849, 2000.
+#'
+#' Kenneth L.Jr. Heck, Gerald van Belle, and Daniel Simberloff. Explicit calculation
+#' of the rarefaction diversity measurement and the determination of sufficient sample
+#' size. Ecology, 56(6):pp. 1459-1461, 1975
+#'
+#' S H Hurlbert. The nonconcept of species diversity: a critique and alternative 
+#' parameters. Ecology, 52(4):577-586, 1971.
+#'
+#' J.A. Ludwig and J.F. Reynolds. Statistical Ecology. A Primer on Methods and 
+#' Computing. New York USA: John Wiley and Sons, 1988.
+#'
+#' Masatoshi Nei. Estimation of average heterozygosity and genetic distance from 
+#' a small number of individuals. Genetics, 89(3):583-590, 1978.
+#'
+#' Jari Oksanen, F. Guillaume Blanchet, Roeland Kindt, Pierre Legendre, Peter R.
+#' Minchin, R. B. O'Hara, Gavin L. Simpson, Peter Solymos, M. Henry H. Stevens, 
+#' and Helene Wagner. vegan: Community Ecology Package, 2012. R package version 2.0-5. 
+#'
+#' E.C. Pielou. Ecological Diversity. Wiley, 1975.
+#'
+#' Claude Elwood Shannon. A mathematical theory of communication. Bell Systems 
+#' Technical Journal, 27:379-423,623-656, 1948
+#'
+#' J M Smith, N H Smith, M O'Rourke, and B G Spratt. How clonal are bacteria?
+#' Proceedings of the National Academy of Sciences, 90(10):4384-4388, 1993.
+#'
+#' J.A. Stoddart and J.F. Taylor. Genotypic diversity: estimation and prediction
+#' in samples. Genetics, 118(4):705-11, 1988.
+#'
+#'
 #' @examples
 #' data(nancycats)
 #' poppr(nancycats)
@@ -166,7 +208,7 @@
 #' 				clonecorrect=TRUE, hier="country", dfname="x")
 #' }
 #==============================================================================#
-#' @import adegenet pegas vegan ggplot2
+#' @import adegenet pegas ggplot2 vegan
 poppr <- function(pop,total=TRUE, sublist=c("ALL"), blacklist=c(NULL), sample=0,
                   method=1, missing="ignore", cutoff=0.05, quiet="minimal",
                   clonecorrect=FALSE, hier=c(1), dfname="population_hierarchy", 
@@ -198,6 +240,10 @@ poppr <- function(pop,total=TRUE, sublist=c("ALL"), blacklist=c(NULL), sample=0,
   }
   else{
     pop <- popsub(x$GENIND, sublist=sublist, blacklist=blacklist)
+    if (any(levels(pop(pop)) == "")){
+      levels(pop(pop))[levels(pop(pop)) == ""] <- "?"
+      warning("missing population factor replaced with '?'")
+    }
     poplist <- .pop.divide(pop)
   }
   # Creating the genotype matrix for vegan's diversity analysis.
@@ -241,13 +287,13 @@ poppr <- function(pop,total=TRUE, sublist=c("ALL"), blacklist=c(NULL), sample=0,
     
     MLG.vec <- vapply(sublist, function(x) mlg(poplist[[x]], quiet=TRUE), 1)
     N.vec <- vapply(sublist, function(x) length(poplist[[x]]@ind.names), 1)
-    # Shannon-Weiner vegan:::diversity index.
+    # Shannon-Weiner diversity index.
     H <- vegan::diversity(pop.mat)
     # E_1, Pielou's evenness.
     # J <- H / log(rowSums(pop.mat > 0))
     # inverse Simpson's index aka Stoddard and Taylor: 1/lambda
     G <- vegan::diversity(pop.mat, "inv")
-    Hexp <- (N.vec/(N.vec-1))*vegan:::diversity(pop.mat, "simp")
+    Hexp <- (N.vec/(N.vec-1))*vegan::diversity(pop.mat, "simp")
     # E_5
     E.5 <- (G-1)/(exp(H)-1)
     # rarefaction giving the standard errors. This will use the minimum pop size
@@ -291,13 +337,13 @@ poppr <- function(pop,total=TRUE, sublist=c("ALL"), blacklist=c(NULL), sample=0,
   else { 
     MLG.vec <- mlg(pop, quiet=TRUE)
     N.vec <- length(pop@ind.names)
-    # Shannon-Weiner vegan:::diversity index.
-    H <- vegan:::diversity(pop.mat)
+    # Shannon-Weiner diversity index.
+    H <- vegan::diversity(pop.mat)
     # E_1, Pielou's evenness.
     # J <- H / log(rowSums(pop.mat > 0))
     # inverse Simpson's index aka Stoddard and Taylor: 1/lambda
-    G <- vegan:::diversity(pop.mat, "inv")
-    Hexp <- (N.vec/(N.vec-1))*vegan:::diversity(pop.mat, "simp")
+    G <- vegan::diversity(pop.mat, "inv")
+    Hexp <- (N.vec/(N.vec-1))*vegan::diversity(pop.mat, "simp")
     # E_5
     E.5 <- (G-1)/(exp(H)-1)
     # rarefaction giving the standard errors. No population structure means that
@@ -410,6 +456,15 @@ poppr.all <- function(filelist, ...) {
 #' \item{p.rD}{A factor indicating the p-value resutling from a one-sided
 #' permutation test based on the number of samples indicated in the original
 #' call.}
+#'
+#' @references  Paul-Michael Agapow and Austin Burt. Indices of multilocus 
+#' linkage disequilibrium. \emph{Molecular Ecology Notes}, 1(1-2):101-102, 2001
+#' 
+#' A.H.D. Brown, M.W. Feldman, and E. Nevo. Multilocus structure of natural 
+#' populations of hordeum spontaneum. \emph{Genetics}, 96(2):523-536, 1980.
+#'
+#' J M Smith, N H Smith, M O'Rourke, and B G Spratt. How clonal are bacteria?
+#' Proceedings of the National Academy of Sciences, 90(10):4384-4388, 1993.
 #'
 #' @seealso \code{\link{poppr}}, \code{\link{missingno}},
 #' \code{\link{import2genind}},
