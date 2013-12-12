@@ -526,21 +526,14 @@ exmat
 
 
 ###################################################
-### code chunk number 74: multilocus_shuffle
-###################################################
-set.seed(1001)
-exmat[sample(1:5), ]
-
-
-###################################################
-### code chunk number 75: permutation
+### code chunk number 74: permutation
 ###################################################
 set.seed(1001)
 matrix(sample(exmat), 5, byrow=T)
 
 
 ###################################################
-### code chunk number 76: param_boot
+### code chunk number 75: param_boot
 ###################################################
 set.seed(1001)
 cat("First Sample")
@@ -550,10 +543,17 @@ matrix(sample(1:4, 10, prob=c(0.1,0.2,0.3,0.4), replace=TRUE), 5, byrow=T)
 
 
 ###################################################
-### code chunk number 77: boot
+### code chunk number 76: boot
 ###################################################
 set.seed(1001)
 matrix(sample(1:4, 10, prob=rep(1, 4), replace=TRUE), 5, byrow=T)
+
+
+###################################################
+### code chunk number 77: multilocus_shuffle
+###################################################
+set.seed(1001)
+exmat[sample(1:5), ]
 
 
 ###################################################
@@ -562,7 +562,7 @@ matrix(sample(1:4, 10, prob=rep(1, 4), replace=TRUE), 5, byrow=T)
 data(nancycats)
 nan1 <- popsub(nancycats, 1)
 ia(nan1)
-replicate(10, ia(shufflepop(nan1, method = 3), quiet=TRUE))
+replicate(10, ia(shufflepop(nan1, method = 2), quiet=TRUE))
 
 
 ###################################################
@@ -623,7 +623,7 @@ H.num
 
 
 ###################################################
-### code chunk number 87: poppr_manual.Rnw:1013-1015
+### code chunk number 87: poppr_manual.Rnw:1015-1017
 ###################################################
 H.tab <- mlg.table(H3N2, quiet=TRUE, bar=FALSE)
 H.tab[1:10, 1:10]
@@ -701,14 +701,14 @@ mlg.table(H3N2, sublist="Norway", mlgsub=UGNN)
 
 
 ###################################################
-### code chunk number 98: poppr_manual.Rnw:1107-1109
+### code chunk number 98: poppr_manual.Rnw:1109-1111
 ###################################################
 H.vec[1:22]
 mlg.vector(H.sub)
 
 
 ###################################################
-### code chunk number 99: poppr_manual.Rnw:1113-1116
+### code chunk number 99: poppr_manual.Rnw:1115-1118
 ###################################################
 H3N2@other$MLG.vector <- H.vec
 H.sub <- H3N2[H.vec %in% UGNN, ]
@@ -744,7 +744,7 @@ names(df)
 
 
 ###################################################
-### code chunk number 104: poppr_manual.Rnw:1147-1150
+### code chunk number 104: poppr_manual.Rnw:1149-1152
 ###################################################
 H.max <- names(sort(H.num, decreasing=TRUE)[1:10])
 # Showing the data frame by the largest MLG complex.
@@ -769,51 +769,36 @@ ia(nancycats)
 ###################################################
 ### code chunk number 107: ia_demo_sampling_dummy (eval = FALSE)
 ###################################################
-## set.seed(1001)
+## set.seed(1009)
 ## ia(popsub(nancycats, 5), sample=999)
 
 
 ###################################################
 ### code chunk number 108: ia_demo_sampling
 ###################################################
-set.seed(1001)
+set.seed(1009)
 simplenan <- ia(popsub(nancycats, 5))
-invisible(lapply(1:999, function(x) {cat(ifelse(x %% 50 == 0, ".\n", "."))}))
-c(simplenan[1], p.Ia = 0.589, simplenan[2], p.rD = 0.589)
+cat("|================================================================================| 100%\n")
+c(simplenan[1], p.Ia = 0.572, simplenan[2], p.rD = 0.572)
 
 
 ###################################################
-### code chunk number 109: poppr_manual.Rnw:1218-1220
+### code chunk number 109: poppr_manual.Rnw:1220-1222
 ###################################################
-set.seed(1001)
+set.seed(1009)
 nan5 <- ia(popsub(nancycats, 5), sample=999, quiet=TRUE)
 
 
 ###################################################
-### code chunk number 110: ch_pval_one (eval = FALSE)
-###################################################
-## set.seed(1001)
-## ia(popsub(nancycats, 5), sample=999, method=3, quiet=TRUE, hist=FALSE)
-
-
-###################################################
-### code chunk number 111: ch_pval_two
-###################################################
-set.seed(1001)
-simplenan2 <- ia(popsub(nancycats, 5))
-c(simplenan2[1], p.Ia = 0.589, simplenan2[2], p.rD = 0.596)
-
-
-###################################################
-### code chunk number 112: ia_Aeut_ex (eval = FALSE)
+### code chunk number 110: ia_Aeut_ex (eval = FALSE)
 ###################################################
 ## data(Aeut)
 ## set.seed(1001)
-## ia(popsub(Aeut, 1), sample=999, method=3, quiet=TRUE, hist=FALSE)
+## ia(popsub(Aeut, 1), sample=999, method=2, quiet=TRUE, hist=FALSE)
 
 
 ###################################################
-### code chunk number 113: ia_Aeut_ex_real
+### code chunk number 111: ia_Aeut_ex_real
 ###################################################
 data(Aeut)
 set.seed(1001)
@@ -822,7 +807,7 @@ c(A.dum[1], p.Ia = 0.001, A.dum[2], p.rD = 0.001)
 
 
 ###################################################
-### code chunk number 114: diss_dist (eval = FALSE)
+### code chunk number 112: diss_dist (eval = FALSE)
 ###################################################
 ## data(Aeut)
 ## A.dist <- diss.dist(Aeut)
@@ -830,11 +815,29 @@ c(A.dum[1], p.Ia = 0.001, A.dum[2], p.rD = 0.001)
 
 
 ###################################################
-### code chunk number 115: poppr_manual.Rnw:1276-1279
+### code chunk number 113: poppr_manual.Rnw:1268-1271
 ###################################################
 data(Aeut)
 A.dist <- diss.dist(Aeut)
 heatmap(as.matrix(A.dist), symm=TRUE)
+
+
+###################################################
+### code chunk number 114: replen_example1
+###################################################
+locus1 <- c(244, 248, 256, 240, 236)
+locus1/4
+1 - 2^-dist(locus1/4)
+
+
+###################################################
+### code chunk number 115: replen_example2
+###################################################
+locus1/2
+1 - 2^-dist(locus1/2) # Distance increase
+
+locus1/8
+1 - 2^-dist(locus1/8) # Distance decrease
 
 
 ###################################################
@@ -851,7 +854,7 @@ heatmap(as.matrix(dist9), symm=TRUE)
 
 
 ###################################################
-### code chunk number 118: poppr_manual.Rnw:1313-1314
+### code chunk number 118: poppr_manual.Rnw:1322-1323
 ###################################################
 heatmap(as.matrix(dist9), symm=TRUE)
 
@@ -900,8 +903,8 @@ heatmap(as.matrix(dist9to8), symm=TRUE)
 ###################################################
 ### code chunk number 124: progbar
 ###################################################
+cat("\nBootstrapping...\n(note: calculation of node labels can take a while even after the progress bar is full)\n\n")
 cat("|================================================================================| 100%\n")
-cat("\nBootstrapping... (note: calculation of node labels can take a while even after the progress bar is full)\n\n")
 
 
 ###################################################
@@ -909,7 +912,8 @@ cat("\nBootstrapping... (note: calculation of node labels can take a while even 
 ###################################################
  set.seed(1001)
  nan9tree <- phangorn::upgma(bruvo.dist(popsub(nancycats, 8:9), replen = rep(1, 9)))
- nan9tree$node.labels <- c(100, NA, NA, NA, NA, 66, NA, NA, NA, NA, NA, 78, NA, 61, NA, NA, NA, NA)
+ nan9tree$node.labels <- c(100, NA, NA, NA, NA, 69, NA, NA, NA, NA, NA, 79, NA, 66, NA, 52, NA, NA)
+ nan9tree$tip.label <- indNames(popsub(nancycats, 8:9))
  ape::plot.phylo(nan9tree, show.node.label=TRUE)
  ape::axisPhylo(3)
 
@@ -1043,35 +1047,35 @@ cbind(pop1[1:10],list(p.Ia = rep(0.001, 3)), pop1[11], list(p.rD = rep(0.001, 3)
 ###################################################
 ### code chunk number 143: nancy_example_show (eval = FALSE)
 ###################################################
-## set.seed(2001)
-## poppr(nancycats, sublist=5:6, total=FALSE, sample=999, method=3, quiet=TRUE, hist=FALSE)
+## set.seed(2002)
+## poppr(nancycats, sublist=5:6, total=FALSE, sample=999, method=2, quiet=TRUE, hist=FALSE)
 
 
 ###################################################
 ### code chunk number 144: nancy_example_eval
 ###################################################
 set.seed(2001)
-nan_ex <- poppr(nancycats, sublist=5:6, total=FALSE, sample=0, method=3, quiet=TRUE, hist=FALSE)
-cbind(nan_ex[1:10],list(p.Ia = c(0.599, 0.064), nan_ex[11], list(p.rD = c(0.599, 0.065), nan_ex[12])))
+nan_ex <- poppr(nancycats, sublist=5:6, total=FALSE, sample=0, method=2, quiet=TRUE, hist=FALSE)
+cbind(nan_ex[1:10],list(p.Ia = c(0.576, 0.070), nan_ex[11], list(p.rD = c(0.576, 0.071), nan_ex[12])))
 
 
 ###################################################
 ### code chunk number 145: simulated_dist (eval = FALSE)
 ###################################################
 ## set.seed(2004)
-## poppr(system.file("files/simulated.dat", package="poppr"), sample=999, method=1, quiet=TRUE)
+## poppr(system.file("files/simulated.dat", package="poppr"), sample=999, method=4, quiet=TRUE)
 
 
 ###################################################
 ### code chunk number 146: simulated_dist_out
 ###################################################
 set.seed(2004)
-sim_ex <- poppr(system.file("files/simulated.dat", package="poppr"), sample=0, method=1, quiet=TRUE, hist=FALSE)
+sim_ex <- poppr(system.file("files/simulated.dat", package="poppr"), sample=0, method=4, quiet=TRUE, hist=FALSE)
 cbind(sim_ex[1:10],list(p.Ia = c(0.09), sim_ex[11], list(p.rD = c(0.09), sim_ex[12])))
 
 
 ###################################################
-### code chunk number 147: poppr_manual.Rnw:1714-1718
+### code chunk number 147: poppr_manual.Rnw:1724-1728
 ###################################################
 df <- data.frame(list(locus1=c("101/101", "102/103", "102/102"), 
                       locus2=c("201/201","202/203","203/204"), 
@@ -1080,13 +1084,13 @@ df
 
 
 ###################################################
-### code chunk number 148: poppr_manual.Rnw:1721-1722
+### code chunk number 148: poppr_manual.Rnw:1731-1732
 ###################################################
 dfg@tab[, 1:3]
 
 
 ###################################################
-### code chunk number 149: poppr_manual.Rnw:1731-1734
+### code chunk number 149: poppr_manual.Rnw:1741-1744
 ###################################################
 abs(dfg@tab[1, 1:3] - dfg@tab[2, 1:3])
 abs(dfg@tab[1, 1:3] - dfg@tab[3, 1:3])

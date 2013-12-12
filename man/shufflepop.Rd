@@ -3,7 +3,7 @@
 \title{Shuffle individuals in a \code{\link{genind}} object independently over each
 locus.}
 \usage{
-  shufflepop(pop, method = 1)
+shufflepop(pop, method = 1)
 }
 \arguments{
   \item{pop}{a \code{\link{genind}} object}
@@ -12,31 +12,31 @@ locus.}
   below.}
 }
 \value{
-  a \code{\link{genind}} object shuffled by a specified
-  method
+a \code{\link{genind}} object shuffled by a specified
+method
 }
 \description{
-  Shuffle individuals in a \code{\link{genind}} object
-  independently over each locus.
+Shuffle individuals in a \code{\link{genind}} object
+independently over each locus.
 }
 \section{Details}{
   This function will shuffle each locus in the data set
   independently of one another, rendering them essentially
   unlinked. The following methods are available to shuffle
-  your data: \enumerate{ \item \strong{Multilocus Style
-  Permutation} This will shuffle the genotypes at each
-  locus, maintaining the heterozygosity and allelic
-  structure.  \item \strong{Permute Alleles} This will
-  redistribute all alleles in the sample throughout the
-  locus. Missing data is fixed in place. This maintains
-  allelic structure, but heterozygosity is variable.  \item
-  \strong{Parametric Bootstrap} This will redistribute
-  available alleles within the locus based on their allelic
-  frequencies. This means that both the allelic state and
-  heterozygosity will vary. The resulting data set will not
-  have missing data.  \item \strong{Non-Parametric
-  Bootstrap} This will shuffle the allelic state for each
-  individual. Missing data is fixed in place. }
+  your data: \enumerate{ \item \strong{Permute Alleles}
+  This will redistribute all alleles in the sample
+  throughout the locus. Missing data is fixed in place.
+  This maintains allelic structure, but heterozygosity is
+  variable.  \item \strong{Parametric Bootstrap} This will
+  redistribute available alleles within the locus based on
+  their allelic frequencies. This means that both the
+  allelic state and heterozygosity will vary. The resulting
+  data set will not have missing data.  \item
+  \strong{Non-Parametric Bootstrap} This will shuffle the
+  allelic state for each individual. Missing data is fixed
+  in place.  \item \strong{Multilocus Style Permutation}
+  This will shuffle the genotypes at each locus,
+  maintaining the heterozygosity and allelic structure. }
 }
 \examples{
 # load the microbov dataset
@@ -62,11 +62,11 @@ summary(shufflepop(Zebu, method=4))
 }
 }
 \author{
-  Zhian N. Kamvar
+Zhian N. Kamvar
 }
 \references{
-  Paul-Michael Agapow and Austin Burt. 2001. Indices of
-  multilocus linkage disequilibrium. \emph{Molecular
-  Ecology Notes}, 1(1-2):101-102
+Paul-Michael Agapow and Austin Burt. 2001. Indices of
+multilocus linkage disequilibrium. \emph{Molecular Ecology
+Notes}, 1(1-2):101-102
 }
 

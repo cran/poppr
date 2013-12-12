@@ -22,7 +22,7 @@
 \newcommand{\m}[1]{\mathbf{#1}}
 \newcommand{\tab}{\hspace*{1em}}
 
-\title{Poppr 1.0.4: An R package for genetic analysis of populations with mixed (clonal/sexual) reproduction}
+\title{Poppr 1.0.5: An R package for genetic analysis of populations with mixed (clonal/sexual) reproduction}
 \author{Zhian N. Kamvar$^{1}$\ and Niklaus J. Gr\"unwald$^{1,2}$\\\scriptsize{1) Department of Botany and Plant Pathology, Oregon State University, Corvallis, OR}\\\scriptsize{2) Horticultural Crops Research Laboratory, USDA-ARS, Corvallis, OR}}
 
 \begin{document}
@@ -61,7 +61,7 @@
 
 \tab\tab\textit{Poppr} is an R package with convenient functions for analysis of genetic data with mixed modes of reproduction including sexual and clonal reproduction. While there are many R packages in CRAN and other repositories with tools for population genetic analyses, few are appropriate for populations with mixed modes of reproduction. There are several stand alone programs that can handle these types of data sets, but they are often platform specific and often only accept specific data types. Furthermore, a typical analysis often involves switching between many programs, and converting data to each specific format.
 
-\textit{Poppr} is designed to make analysis of populations with mixed reproductive modes more streamlined and user friendly so that the researcher using it can focus on data analysis and interpretation. \textit{Poppr} allows analysis of haploid and diploid dominant/co-dominant marker data including microsattelites, Single Nucleotide Polymorphisms (SNP), and Amplified Fragment Length Polymorphisms (AFLP). To avoid creating yet another file format that is specific to a program, \textit{poppr} was created on the backbone of the popular R package \textit{adegenet} and can take all the file formats that \textit{adegenet} can take (Genpop, Gentix, Fstat, and Structure) and newly introduces compatibility with GenAlEx formatted files (exported to CSV). This means that anything you can analyze in \textit{adegenet} can be further analyzed with \textit{poppr}.
+\textit{Poppr} is designed to make analysis of populations with mixed reproductive modes more streamlined and user friendly so that the researcher using it can focus on data analysis and interpretation. \textit{Poppr} allows analysis of haploid and diploid dominant/co-dominant marker data including microsattelites, Single Nucleotide Polymorphisms (SNP), and Amplified Fragment Length Polymorphisms (AFLP). To avoid creating yet another file format that is specific to a program, \textit{poppr} was created on the backbone of the popular R package \textit{adegenet} and can take all the file formats that \textit{adegenet} can take (Genpop, Genetix, Fstat, and Structure) and newly introduces compatibility with GenAlEx formatted files (exported to CSV). This means that anything you can analyze in \textit{adegenet} can be further analyzed with \textit{poppr}.
 
 The real power of \textit{poppr} is in the data manipulation and analytic tools. \textit{Poppr} has the ability to define multiple population hierarchies, clone-censor, and subset data sets. With \textit{poppr} you can also quickly calculate Bruvo's distance, the index of association, and easily determine which multilocus genotypes are shared across populations.
 \subsection{Installation}\label{intro:install}
@@ -199,6 +199,7 @@ popdata
 <<aflp2, echo=FALSE>>=
 popprsoutput
 @
+One thing to note about this output is the \texttt{NaN} in the column labeled \texttt{SE}. This is produced from calculation of a standard error based on rarefaction analysis. Occasionally, this calculation will encounter a situation in which it must attempt to take a square root of a negative number. As you no doubt have learned in high school mathematics, the root of any negative number is not defined in the set of real numbers, and must have an imaginary component, $i$. Unfortunately, R is a computer program without any imagination and, thus imaginary numbers cannot be represented. To account for this, R represents the square roots of negatives as ``not a number" or \texttt{NaN}.\\
 The fields you see in the output include:
 \begin{itemize}
   \item \texttt{Pop -} Population name (Note that ``Total" also means ``Pooled").
@@ -213,6 +214,7 @@ The fields you see in the output include:
   \item \texttt{Ia -} The index of association, $I_A$. \cite{Brown:1980} \cite{Smith:1993} \cite{Agapow:2001}
   \item \texttt{rbarD -} The standardized index of association, $\bar r_d$. \cite{Agapow:2001}
 \end{itemize}
+
 These fields are further described in section \ref{summary}, \textit{I know what you did last summary table} at the end of this vignette. 
 
 \subsection{Get out of my dreams and into my R \{importing data into poppr\}}\label{intro:import}
@@ -282,7 +284,7 @@ list(
   path = "/path/to/R/adegenet/files"
 )
 @
-Now, let's exclude everything but gentix files (*.gtx).
+Now, let's exclude everything but genetix files (*.gtx).
 <<getfile_gtx, eval=FALSE>>=
 getfile(multi=TRUE, pattern="gtx")
 @
@@ -403,7 +405,7 @@ If you have a large data set with many population levels, you can use the follow
 
 \subsubsection{Other ways of importing data}\label{intro:import:other}
 
-\tab\tab \textit{Adegenet} already supports the import of FSTAT, Structure, Genpop, and Gentix formatted files, so if you have those formats, you can import them using the function \texttt{import2genind}. For sequence data, check if you can use \texttt{read.dna} from the \textit{ape} package to import your data. If you can, then you can use the \textit{adegenet} function \texttt{DNAbin2genind}. If you don't have any of these formats handy, you can still import your data using R's \texttt{read.table} along with \texttt{df2genind} from \textit{adegenet}. For more information, see \textit{adegenet}'s ``Getting Started" vignette.
+\tab\tab \textit{Adegenet} already supports the import of FSTAT, Structure, Genpop, and Genetix formatted files, so if you have those formats, you can import them using the function \texttt{import2genind}. For sequence data, check if you can use \texttt{read.dna} from the \textit{ape} package to import your data. If you can, then you can use the \textit{adegenet} function \texttt{DNAbin2genind}. If you don't have any of these formats handy, you can still import your data using R's \texttt{read.table} along with \texttt{df2genind} from \textit{adegenet}. For more information, see \textit{adegenet}'s ``Getting Started" vignette.
 
 \subsubsection{Function: genind2genalex}\label{intro:import:genind2genalex}
 
@@ -848,7 +850,7 @@ Default Command:\\
   \item \texttt{method -} a number indicating the method of sampling you wish to use. 
   The following methods are available for use:
   \begin{enumerate}
-    \item \textbf{Multilocus permutation} This is called Multilocus permutation because it does the same thing as the permutation analysis in the program \textit{multilocus} by Paul Agapow and Austin Burt \cite{Agapow:2001}. This will shuffle the genotypes at each locus. For example, a single diploid locus with four alleles (1, 2, 3, 4) with the frequencies of 0.1, 0.2, 0.3, and 0.4, respectively:
+    \item \textbf{Permute Alleles (default)} This is a sampling scheme that will permute alleles within the locus. For example, a single diploid locus with four alleles (1, 2, 3, 4) with the frequencies of 0.1, 0.2, 0.3, and 0.4, respectively:
 <<shuffle_mat, echo=FALSE>>=
 exmat <- matrix(c(4,4,
          4,1,
@@ -858,19 +860,12 @@ exmat <- matrix(c(4,4,
 exmat
 @
 might become:
-<<multilocus_shuffle,echo=FALSE>>=
-set.seed(1001)
-exmat[sample(1:5), ]
-@
-
-Note that you have the same genotypes after shuffling, so at each locus, you will maintain the same allelic frequencies and heterozygosity. So, in this sample, you will only see a homozygote with allele 2. This also ensures that the P-values associated with $I_A$ and $\bar r_d$ are exactly the same (for an explanation, see the end of section \ref{index:iard:ia} of this manual). Unfortunately, if you are trying to simulate a sexual population, this does not make much biological sense as it assumes that alleles are not independently assorting within individuals.
-    \item \textbf{Permute Alleles} This is a sampling scheme that will permute alleles within the locus. So, using our example above, our resampling might become:
 <<permutation, echo=FALSE>>=
 set.seed(1001)
 matrix(sample(exmat), 5, byrow=T)
 @
 As you can see, The heterozygosity has changed, yet the allelic frequencies remain the same. Overall this would show you, for example, what would happen if the sample you had underwent panmixis within this sample itself. 
-    \item \textbf{Parametric Bootstrap} The previous two schemes reshuffled the observed sample, but the parametric bootstrap uses the allelic frequencies as estimates of what the true allelic frequencies are and uses those as probabilities for each allele when resampling the data with replacement. Here are two samples to show you what I mean.
+    \item \textbf{Parametric Bootstrap} The previous scheme reshuffled the observed sample, but the parametric bootstrap uses the allelic frequencies as estimates of what the true allelic frequencies are and uses those as probabilities for each allele when resampling the data with replacement. Here are two samples to show you what I mean.
 <<param_boot, echo=FALSE>>=
 set.seed(1001)
 cat("First Sample")
@@ -880,12 +875,19 @@ matrix(sample(1:4, 10, prob=c(0.1,0.2,0.3,0.4), replace=TRUE), 5, byrow=T)
 @
 
 Notice how the heterozygosity has changed along with the allelic frequencies. The frequencies for alleles 3 and 4 have switched in the first data set, and we've lost allele 1 in the second data set purely by chance! This type of sampling scheme attempts to show you what the true population would look like if it were panmictic and your original sample gave you a basis for estimating expected allele frequencies. Since estimates are made from the observed allele frequencies, small samples will produce skewed results.
-    \item \textbf{Non-Parametric Bootstrap} The final method is sampling with replacement, but with no assumption about the distribution of the alleles. 
+    \item \textbf{Non-Parametric Bootstrap} The third method is sampling with replacement, but with no assumption about the distribution of the alleles. 
 <<boot, echo=FALSE>>=
 set.seed(1001)
 matrix(sample(1:4, 10, prob=rep(1, 4), replace=TRUE), 5, byrow=T)
 @
 Again, heterozygosity and allele frequencies are not maintained, but now all of the alleles have a 1 in 4 chance of being chosen.
+    \item \textbf{Multilocus permutation} This is called Multilocus permutation because it does the same thing as the permutation analysis in the program \textit{multilocus} by Paul Agapow and Austin Burt \cite{Agapow:2001}. This will shuffle the genotypes at each locus. Using our example above, here it is shuffled with method 4:
+<<multilocus_shuffle,echo=FALSE>>=
+set.seed(1001)
+exmat[sample(1:5), ]
+@
+
+Note that you have the same genotypes after shuffling, so at each locus, you will maintain the same allelic frequencies and heterozygosity. So, in this sample, you will only see a homozygote with allele 2. This also ensures that the P-values associated with $I_A$ and $\bar r_d$ are exactly the same (for an explanation, see the end of section \ref{index:iard:ia} of this manual). Unfortunately, if you are trying to simulate a sexual population, this does not make much biological sense as it assumes that alleles are not independently assorting within individuals.
   \end{enumerate}
 \end{itemize}
 These shuffling schemes have been implemented for the index of association, but there may be other summary statistics you can use \texttt{shufflepop} for. All you have to do is use the function \texttt{replicate}. Let's use $I_A$ as an example:
@@ -893,7 +895,7 @@ These shuffling schemes have been implemented for the index of association, but 
 data(nancycats)
 nan1 <- popsub(nancycats, 1)
 ia(nan1)
-replicate(10, ia(shufflepop(nan1, method = 3), quiet=TRUE))
+replicate(10, ia(shufflepop(nan1, method = 2), quiet=TRUE))
 @
 You could use this method to replicate the resampling 999 times and then create a histogram to visualize a distribution of what would happen under different assumptions of panmixia.
 
@@ -1176,7 +1178,7 @@ It is important to note that for this algorithm, all missing values are treated 
 \tab\tab This function is a quick look at a single data set. It can do almost everything that \texttt{poppr} can do except for sorting through populations.
 \begin{quote}
 Default Command:\\
-\texttt{ia(pop, sample = 0, method = 1, quiet = "minimal", missing = "ignore", 
+\texttt{ia(pop, sample = 0, method = 1, quiet = FALSE, missing = "ignore", 
     hist = TRUE)}
 \end{quote}
 \begin{itemize}
@@ -1184,13 +1186,13 @@ Default Command:\\
   \item \texttt{sample -} You should use this flag whenever you want to reshuffle your data set. Indicate how many times you want to reshuffle your data set to obtain a P-value. 
   \item \texttt{method -} a number from 1 to 4 indicating the sampling method:
   \begin{enumerate}
-    \item \textit{multilocus} style permutation \cite{Agapow:2001}.
     \item permutation over alleles.
     \item parametric bootstrap.
     \item non-parametric bootstrap.
+    \item \textit{multilocus} style permutation \cite{Agapow:2001}.
   \end{enumerate}
   The methods are detailed in section \ref{data.manip:shuffle:shufflepop} of this manual.
-  \item \texttt{quiet -} This has three settings, \texttt{TRUE}, \texttt{FALSE}, and \texttt{"noisy"}. If set to \texttt{TRUE}, nothing will be printed to the screen as the sampling progresses. If \texttt{FALSE} and if there is sampling, a single dot for each sampling replicate will be printed to the screen to show the progress of the sampling. Choosing \texttt{"noisy"} is not recommended for the average user as it is meant for debugging. It will print the values of $I_A$ and $\bar r_d$ to the screen as they are produced. 
+  \item \texttt{quiet -} If set to \texttt{TRUE}, nothing will be printed to the screen as the sampling progresses. If \texttt{FALSE} will produce a progress bar.
   \item \texttt{missing -} This will preprocess your missing values. It is set to ignore missing data, so that they do not contribute to the distance measure. It can also be set to \texttt{"loci", "geno", "zero", or "mean"}. For details, see section \ref{data.manip:missing:missingno} of this manual.
   \item \texttt{hist -} This will produce a pair of histograms for each population showing the distribution of $I_A$ and $\bar r_d$ across the sampled data sets, and plot the observed value as a single vertical line.
 \end{itemize}
@@ -1200,43 +1202,33 @@ ia(nancycats)
 @
 We can use \texttt{popsub} to subset for specific populations. Here, we'll also demonstrate the sampling flag and show you what the histogram looks like.
 <<ia_demo_sampling_dummy, eval=FALSE>>=
-set.seed(1001)
+set.seed(1009)
 ia(popsub(nancycats, 5), sample=999)
 @
 <<ia_demo_sampling, echo=FALSE>>=
-set.seed(1001)
+set.seed(1009)
 simplenan <- ia(popsub(nancycats, 5))
-invisible(lapply(1:999, function(x) {cat(ifelse(x %% 50 == 0, ".\n", "."))}))
-c(simplenan[1], p.Ia = 0.589, simplenan[2], p.rD = 0.589)
+cat("|================================================================================| 100%\n")
+c(simplenan[1], p.Ia = 0.572, simplenan[2], p.rD = 0.572)
 @
 
-This analysis produced the histograms you see below. What these histograms represent are 999 resamplings of the data under the null hypothesis ($H_0$) of sexual reproduction. The way that $H_0$ is created is determined by the sampling method chosen. In this case, the method was to shuffle genotypes at each locus to simulate unlinked loci. Since the P = 0.589, we would fail to reject $H_0$ and we therefore might conclude that this population is sexually reproducing \cite{Brown:1980} \cite{Smith:1993} \cite{Agapow:2001}.
+This analysis produced the histograms you see below. What these histograms represent are 999 resamplings of the data under the null hypothesis ($H_0$) of sexual reproduction. The way that $H_0$ is created is determined by the sampling method chosen. In this case, the method was to shuffle genotypes at each locus to simulate unlinked loci. Since the P = 0.572, we would fail to reject $H_0$ and we therefore might conclude that this population is sexually reproducing \cite{Brown:1980} \cite{Smith:1993} \cite{Agapow:2001}.
 \begin{figure}[h!]
   \centering
   \caption{\footnotesize Histograms of 999 values of $I_A$ and $\bar{r}_d$ calculated from 999 resamplings of population 5 from the data set ``nancycats". The observed values of $I_A$ and $\bar r_d$ are represented as vertical blue lines overlaid on the distributions. The ticks at the bottom of each histogram represent individual observations.}
   \label{ia_demo_fig}
 <<fig=TRUE, width=8, height=8, echo=FALSE, eval=TRUE, figs.only=TRUE, resolution=300>>=
-set.seed(1001)
+set.seed(1009)
 nan5 <- ia(popsub(nancycats, 5), sample=999, quiet=TRUE)
 @
 \end{figure}
 %\newpage
 
-Note that both of the P-values are exactly the same. This is what you would obtain with the default sampling scheme because the variances within loci do not change. When you change the sampling scheme, however, the P-values can end up being different. That's why there are two fields for P-values. Let's look at what happens to the P-values once we change the sampling scheme to a parametric bootstrap.
-<<ch_pval_one, eval=FALSE>>=
-set.seed(1001)
-ia(popsub(nancycats, 5), sample=999, method=3, quiet=TRUE, hist=FALSE)
-@
-<<ch_pval_two, echo=FALSE>>=
-set.seed(1001)
-simplenan2 <- ia(popsub(nancycats, 5))
-c(simplenan2[1], p.Ia = 0.589, simplenan2[2], p.rD = 0.596)
-@
-There, is, of course one little caveat that needs to be mentioned. The P-values are calculated by comparing how many permuted values are greater than or equal to the observed value. This includes the observed value (which is why setting the randomizations to 999 will give you a round P-value) which means that the lowest P-value you will ever have is $1/(n+1)$ where $n$ is the number of permutations you select. Take for example this population of a clonal root rot pathogen, \textit{Aphanomyces euteiches}:
+There, are, of course a couple of caveats that need to be mentioned regarding our P-values. First, while we have equivalent P-values for $I_A$ and $\bar{r}_d$, they might not always be equal due to the difference in calculation. Details about that can be found in the Appendix section \ref{appendix:algorithm:iard}. Second, the P-values are calculated by comparing how many permuted values are greater than or equal to the observed value. This includes the observed value (which is why setting the randomizations to 999 will give you a round P-value) which means that the lowest P-value you will ever have is $1/(n+1)$ where $n$ is the number of permutations you select. Take for example this population of a clonal root rot pathogen, \textit{Aphanomyces euteiches}:
 <<ia_Aeut_ex, eval=FALSE>>=
 data(Aeut)
 set.seed(1001)
-ia(popsub(Aeut, 1), sample=999, method=3, quiet=TRUE, hist=FALSE)
+ia(popsub(Aeut, 1), sample=999, method=2, quiet=TRUE, hist=FALSE)
 @
 <<ia_Aeut_ex_real, echo=FALSE>>=
 data(Aeut)
@@ -1295,6 +1287,23 @@ Default Command:\\
   \item \texttt{pop -} a \texttt{genind} object.
   \item \texttt{replen -} This is a vector of numbers indicating the repeat length for each locus in your sample. If you have two dinucleotide repeats and five tetranucleotide repeats, you would put \texttt{c(2,2,4,4,4,4,4)} in this field. If you have imported data where that represents the raw number of steps, all you would have to type is \texttt{rep(1, n)}, replacing $n$ with the number of loci in your sample. It is important that you place something in this field because this function will attempt to estimate the repeat length based on the minimum difference of the alleles represented; with variability of position calls, relying on this estimation is NOT recommended. 
 \end{itemize}
+
+To illustrate why it is important to specify the repeat lengths, let's imagine a locus that contains 5 alleles and the true repeat length is 4. Note that Bruvo's distance between alleles is calculated as $1 - 2^{-[x]}$, where $x$ is the difference in repeat lengths:
+<<replen_example1>>=
+locus1 <- c(244, 248, 256, 240, 236)
+locus1/4
+1 - 2^-dist(locus1/4)
+@
+We can see that the distance between them ranges from 1 to 5. Let's say, that we accidentally wrote 2 or 8 instead of 4:
+<<replen_example2>>=
+locus1/2
+1 - 2^-dist(locus1/2) # Distance increase
+
+locus1/8
+1 - 2^-dist(locus1/8) # Distance decrease
+@
+While we will still get results from this analysis with the incorrect repeat length, they will be inherently wrong as they do not represent the true distance. That being said, it's important to note that the repeat lengths we represent for the rest of the manual are not known by the authors, but are used as a simple example. 
+
 This function will return a distance matrix (displaying the smallest population in the data set ``nancycats"):
 <<bruvo_matrix>>=
 dist9 <- bruvo.dist(popsub(nancycats, 9), replen=rep(1,9))
@@ -1377,8 +1386,8 @@ set.seed(1001)
 nan9tree <- bruvo.boot(popsub(nancycats, 8:9), replen=rep(1,9), sample=1000, cutoff=50)
 @
 <<progbar, echo=FALSE>>=
+cat("\nBootstrapping...\n(note: calculation of node labels can take a while even after the progress bar is full)\n\n")
 cat("|================================================================================| 100%\n")
-cat("\nBootstrapping... (note: calculation of node labels can take a while even after the progress bar is full)\n\n")
 @
 \begin{figure}[h!]
   \centering
@@ -1389,7 +1398,8 @@ cat("\nBootstrapping... (note: calculation of node labels can take a while even 
 <<bruvo_tree, fig=TRUE, echo=FALSE, resolution=300>>=
  set.seed(1001)
  nan9tree <- phangorn::upgma(bruvo.dist(popsub(nancycats, 8:9), replen = rep(1, 9)))
- nan9tree$node.labels <- c(100, NA, NA, NA, NA, 66, NA, NA, NA, NA, NA, 78, NA, 61, NA, NA, NA, NA)
+ nan9tree$node.labels <- c(100, NA, NA, NA, NA, 69, NA, NA, NA, NA, NA, 79, NA, 66, NA, 52, NA, NA)
+ nan9tree$tip.label <- indNames(popsub(nancycats, 8:9))
  ape::plot.phylo(nan9tree, show.node.label=TRUE)
  ape::axisPhylo(3)
 @
@@ -1455,7 +1465,7 @@ greycurve(glim = c(0.2, 0.9), gadj=15, gweight=2)
 \tab\tab This function will automatically draw a minimum spanning network of MLGs based on Bruvo's distance. It's important to note that this will recalculate Bruvo's distance each time it is run, but the amount of time it takes to run is on the order of seconds. It will return a list containing the network, the populations and the related colors in the network so you can export or redraw it with the legend if you wanted to using the package \textit{igraph} (type \texttt{help("plot.igraph")} for details).
 \begin{quote}
 Default Command:\\
-\texttt{bruvo.msn(pop, replen = c(1), palette = topo.colors, sublist = "All",\\ 
+\texttt{bruvo.msn(pop, replen = c(2), palette = topo.colors, sublist = "All",\\ 
   \tab blacklist = NULL, vertex.label = "MLG", gscale = TRUE, glim = c(0, 0.8),\\ 
   \tab gadj = 3, gweight = 1, wscale = TRUE, ...)
 }
@@ -1582,7 +1592,7 @@ A.msn <- poppr.msn(Aeut, A.dist, vertex.label=NA, palette=rainbow, gadj=15)
 \begin{quote}
 Default Command:\\
 \texttt{poppr(pop, total = TRUE, sublist = c("ALL"), blacklist = c(NULL), sample = 0,\\ 
-        \tab method = 1, missing = "ignore", cutoff = 0.05, quiet = "minimal", \\
+        \tab method = 1, missing = "ignore", cutoff = 0.05, quiet = FALSE, \\
         \tab clonecorrect = FALSE, hier = c(1), dfname = "population\_hierarchy", \\
         \tab hist = TRUE, minsamp = 10)}
 \end{quote}
@@ -1597,14 +1607,14 @@ Default Command:\\
   \item \emph{shufflepop functions:} See section \ref{data.manip:shuffle} \\ Note that this only affects the calculation for $I_A$ and $\bar r_d$.
   \begin{description}
     \item[sample -] The number of samples you desire (eg. 999)
-    \item[method -] Which sampling method? 1: multilocus, 2: permute, 3: parametric bootstrap, 4: non-parametric bootstrap.
+    \item[method -] Which sampling method? 1: permute, 2: parametric bootstrap, 3: non-parametric bootstrap, 4: multilocus.
   \end{description}
   \item \emph{missingno functions:} See Section \ref{data.manip:missing} \\ Note that all analyses in this function ignore/impute missing data by default.
     \begin{description}
       \item[missing -] How to deal with missing data. This feeds into the \texttt{type} flag of \texttt{missingno}.
       \item[cutoff -] Allowable percentage of missing data per genotype or locus.
     \end{description}
-  \item \texttt{quiet -} This has three settings, \texttt{TRUE}, \texttt{FALSE}, and \texttt{"noisy"}. If set to \texttt{TRUE}, nothing will be printed to the screen as the sampling progresses. If \texttt{FALSE} and if there is sampling, a single dot for each sampling replicate will be printed to the screen to show the progress of the sampling. Choosing \texttt{"noisy"} is not recommended for the average user as it is meant for debugging. It will print the values of $I_A$ and $\bar r_d$ to the screen as they are produced. 
+  \item \texttt{quiet -} If set to \texttt{TRUE}, nothing will be printed to the screen as the sampling progresses. If \texttt{FALSE} (default) a progress bar will be produced.
   \item \emph{clonecorrect functions:} See section \ref{data.manip:cc}
   \begin{description}
     \item[clonecorrect -] if this is set to \texttt{TRUE}, then you will need to set the next two parameters.
@@ -1623,7 +1633,7 @@ To begin, let's revisit our example data set of \textit{Aphanomyces euteiches} \
 data(Aeut)
 poppr(Aeut)
 @
-OK, so we were able to get a table out of this. Now let's see what happens when we do some sampling to see if this is reproducing clonally or not (for simplicity's sake, we will stick with the default multilocus sampling method). We will turn quiet on and the histogram off to save space.
+OK, so we were able to get a table out of this. Now let's see what happens when we do some sampling to see if this is reproducing clonally or not. We will turn quiet on and the histogram off to save space.
 <<Aeut_sample, eval=FALSE>>=
 poppr(Aeut, sample=999, hist=FALSE, quiet=TRUE)
 @
@@ -1651,24 +1661,24 @@ cbind(pop1[1:10],list(p.Ia = rep(0.001, 3)), pop1[11], list(p.rD = rep(0.001, 3)
 @
 As you can see, clone correction doesn't always have to involve creation of new data sets!
 
-You might notice that the P-values for both $I_A$ and $\bar r_d$ are often equal to each other. This is due to the default sampling method \cite{Agapow:2001}. Here, we show examples where they are not equal.
+You might notice that the P-values for both $I_A$ and $\bar r_d$ are often equal to each other. This will always be the case with the sampling method utilized in method 4 \cite{Agapow:2001}. Here, we show examples where they are not equal and why it's okay.
 <<nancy_example_show, eval=FALSE>>=
-set.seed(2001)
-poppr(nancycats, sublist=5:6, total=FALSE, sample=999, method=3, quiet=TRUE, hist=FALSE)
+set.seed(2002)
+poppr(nancycats, sublist=5:6, total=FALSE, sample=999, method=2, quiet=TRUE, hist=FALSE)
 @
 <<nancy_example_eval, echo=FALSE>>=
 set.seed(2001)
-nan_ex <- poppr(nancycats, sublist=5:6, total=FALSE, sample=0, method=3, quiet=TRUE, hist=FALSE)
-cbind(nan_ex[1:10],list(p.Ia = c(0.599, 0.064), nan_ex[11], list(p.rD = c(0.599, 0.065), nan_ex[12])))
+nan_ex <- poppr(nancycats, sublist=5:6, total=FALSE, sample=0, method=2, quiet=TRUE, hist=FALSE)
+cbind(nan_ex[1:10],list(p.Ia = c(0.576, 0.070), nan_ex[11], list(p.rD = c(0.576, 0.071), nan_ex[12])))
 @
-The reason why the P-values would be different is described at the end of section \ref{index:iard:ia}. The differences in P-values are normally not very far off. It's important to note this because of what can happen in extremely clonal populations. You can end up with a large enough sample size consisting of very few MLGs. Upon shuffling, you find that there are very few values of $I_A$ and $\bar r_d$ that can be obtained. Observe with this simulated data set:
+The reason why the P-values would be different is described at the end of section \ref{index:iard:ia}. The differences in P-values are normally not very far off. It's important to note this because of what can happen in extremely clonal populations. You can end up with a large enough sample size consisting of very few MLGs. Upon shuffling using method 4, you find that there are very few values of $I_A$ and $\bar r_d$ that can be obtained. Observe with this simulated data set:
 <<simulated_dist, eval=FALSE>>=
 set.seed(2004)
-poppr(system.file("files/simulated.dat", package="poppr"), sample=999, method=1, quiet=TRUE)
+poppr(system.file("files/simulated.dat", package="poppr"), sample=999, method=4, quiet=TRUE)
 @
 <<simulated_dist_out, echo=FALSE>>=
 set.seed(2004)
-sim_ex <- poppr(system.file("files/simulated.dat", package="poppr"), sample=0, method=1, quiet=TRUE, hist=FALSE)
+sim_ex <- poppr(system.file("files/simulated.dat", package="poppr"), sample=0, method=4, quiet=TRUE, hist=FALSE)
 cbind(sim_ex[1:10],list(p.Ia = c(0.09), sim_ex[11], list(p.rD = c(0.09), sim_ex[12])))
 @
 \begin{figure}[h!]
@@ -1895,15 +1905,15 @@ Remember, it is important not to forget to type \texttt{dev.off()} when you are 
 \item mlg.crosspop(pop, sublist = "ALL", blacklist = NULL, mlgsub = NULL, indexreturn = FALSE, df = FALSE, quiet = FALSE) (Section \ref{mlg:cross:mlg.crosspop})
 \item mlg.table(pop, sublist = "ALL", blacklist = NULL, mlgsub = NULL, bar = TRUE, total = FALSE, quiet = FALSE) (Section \ref{mlg:table:mlg.table})
 \item mlg.vector(pop) (Section \ref{mlg:mix:mlg.vector})
-\item ia(pop, sample = 0, method = 1, quiet = "minimal", missing = "ignore", hist = TRUE) (Section \ref{index:iard:ia})
+\item ia(pop, sample = 0, method = 1, quiet = FALSE, missing = "ignore", hist = TRUE) (Section \ref{index:iard:ia})
 \item diss.dist(pop) (Section \ref{index:dist:diss.dist})
 \item bruvo.dist(pop, replen = c(2)) (Section \ref{index:bruvo:bruvo.dist})
 \item bruvo.boot(pop, replen = c(2), sample = 100, tree = "upgma", showtree = TRUE, 
 cutoff = NULL, quiet = FALSE, ...)  (Section \ref{index:trees:bruvo.boot})
 \item greycurve(glim = c(0, 0.8), gadj = 3, gweight = 1) (Section \ref{index:trees:greycurve})
-\item bruvo.msn(pop, replen = c(1), palette = topo.colors, sublist = "All", blacklist = NULL, vertex.label = "MLG", gscale = TRUE, glim = c(0, 0.8), gadj = 3, gweight = 1, wscale = TRUE, ...) (Section \ref{index:trees:bruvo.msn})
+\item bruvo.msn(pop, replen = c(2), palette = topo.colors, sublist = "All", blacklist = NULL, vertex.label = "MLG", gscale = TRUE, glim = c(0, 0.8), gadj = 3, gweight = 1, wscale = TRUE, ...) (Section \ref{index:trees:bruvo.msn})
 \item poppr.msn(pop, distmat, palette = topo.colors, sublist = "All", blacklist = NULL, vertex.label = "MLG", gscale = TRUE, glim = c(0, 0.8), gadj = 3, gweight = 1, wscale = TRUE, ...) (Section \ref{index:trees:poppr.msn})
-\item poppr(pop, total = TRUE, sublist = c("ALL"), blacklist = c(NULL), sample = 0, method = 1, missing = "ignore", cutoff=0.05, quiet = "minimal", clonecorrect = FALSE, hier = c(1), keep = 1, dfname = "population\_hierarchy", hist = TRUE, minsamp = 10) (Section \ref{summary:poppr})
+\item poppr(pop, total = TRUE, sublist = c("ALL"), blacklist = c(NULL), sample = 0, method = 1, missing = "ignore", cutoff=0.05, quiet = FALSE, clonecorrect = FALSE, hier = c(1), keep = 1, dfname = "population\_hierarchy", hist = TRUE, minsamp = 10) (Section \ref{summary:poppr})
 \item poppr.all(filelist, ...) (Sections \ref{intro:import:getfile} and \ref{summary:poppr})
 \end{itemize}
 \normalsize
