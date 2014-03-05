@@ -85,16 +85,16 @@
 #' # Take note of the Number of alleles per population and the Observed
 #' # heterozygosity as we go through each method.
 #' 
-#' # Multilocus Style: maintain allelic state and heterozygosity.
+#' # Permute Alleles: maintain allelic state; heterozygosity varies.
 #' summary(shufflepop(Zebu, method=1))
 #' \dontrun{
-#' # Permute Alleles: maintain allelic state; heterozygosity varies.
+#' # Parametric Bootstrap: do not maintain allelic state or heterozygosity
 #' summary(shufflepop(Zebu, method=2))
 #'
-#' # Parametric Bootstrap: do not maintain allelic state or heterozygosity
+#' # Non-Parametric Bootstrap: do not maintain allelic state or heterozygosity.
 #' summary(shufflepop(Zebu, method=3))
 #' 
-#' # Non-Parametric Bootstrap: do not maintain allelic state or heterozygosity.
+#' # Multilocus Style: maintain allelic state and heterozygosity.
 #' summary(shufflepop(Zebu, method=4))
 #' }
 #==============================================================================#
@@ -224,7 +224,7 @@ shufflefunk <- function(pop, FUN, sample=1, method=1, ...){
 
 # Maintenece of only the allelic structure. Heterozygosity can fluctuate.
     else if(method == 1)
-      pop@tab <- .permut.shuff(pop@tab)
+      pop@tab <- .permut.shuff(pop@tab, ploidy(pop))
 
 # Parametric Bootstraping where both heterozygosity and allelic structure can
 # change based on allelic frequency. 
@@ -260,6 +260,7 @@ shufflefunk <- function(pop, FUN, sample=1, method=1, ...){
 #
 # weights is a corresponding vector giving the allelic frequency for each allele
 # at that locus in that population. The sum of the frequencies should be 1. 
+# DEPRECIATED (replaced with multinomial distribution)
 #==============================================================================# 
 .diploid.shuff <- function(vec, weights){
   # Dealing with missing values is probably not necessary for a parametric
@@ -294,45 +295,11 @@ shufflefunk <- function(pop, FUN, sample=1, method=1, ...){
 #
 #==============================================================================#
   
-.permut.shuff <- function(mat){
-  # gathering the counts of allelic states (represented as column numbers)
-  bucket     <- as.vector(colSums(mat, na.rm=T) * 2)
-  bucketlist <- rep(1:length(bucket), bucket)
-  # reshuffling the allelic states
-  samplist <- bucketlist[sample(length(bucketlist))]
-  newmat   <- mat  
-  newmat[which(!is.na(mat))] <- 0
-  
-  # Treating Missing Data
-  #
-  # go on to the next locus if all are NA
-  if(all(is.na(mat))){
-    next
-  }
-  # placing the individuals with missing data in the sample list so that it is
-  # the same length as the number of rows * 2 to avoid errors.
-  if(any(is.na(mat))){
-    temp <- vector(mode="numeric", length=nrow(mat)*2)
-    miss <- which(is.na(mat[, 1]))
-    temp[c(-miss*2, -((miss*2)-1))] <- samplist
-    samplist <- temp
-  }
-
-  # A function that will repopulate the new matrix with the shuffled alleles
-  # x is a list of even numbers, newmat is an empty matrix, and samplist is 
-  # a list of shuffled alleleic states.
-  populate.mat <- function(x, newmat, samplist){
-    if (samplist[x] == samplist[x-1]){
-      newmat[x/2, samplist[x-1]] <<- 1
-    }
-    else {
-      newmat[x/2, samplist[x]]   <<- 0.5
-      newmat[x/2, samplist[x-1]] <<- 0.5
-    }
-  }
-  x <- which(1:(nrow(mat)*2)%%2==0)
-  lapply(x, populate.mat, newmat, samplist)
-  return(newmat)
+.permut.shuff <- function(mat, ploidy = 2){
+  bucket     <- colSums(mat, na.rm = TRUE)*ploidy
+  bucketlist <- as.integer(sample(rep(1:length(bucket), bucket)))
+  mat        <- .Call("permute_shuff", mat, bucketlist - 1, 1/ploidy, ploidy)
+  return(mat)
 }
 
 #==============================================================================#
@@ -343,3 +310,4 @@ shufflefunk <- function(pop, FUN, sample=1, method=1, ...){
   mat <- mat[sample(nrow(mat)), ]
   return(mat)
 }
+
