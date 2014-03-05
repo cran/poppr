@@ -10,23 +10,36 @@ genind object and offers the following implementations:
 - calculation of indices of genotypic diversity, evenness, richness, and rarefaction
 - drawing of dendrograms with bootstrap support for Bruvo's distance
 - drawing of minimum spanning networks for genetic distances
-- calculation of the index of association (![equation](http://latex.codecogs.com/gif.latex?I_A)) or ![equation](http://latex.codecogs.com/gif.latex?\\bar{r}_d)
+- calculation of the index of association 
+(![equation](http://latex.codecogs.com/gif.latex?I_A))
+or (![equation](http://latex.codecogs.com/gif.latex?%5Cbar%7Br%7D_d))
 - batch processing on any server that has R ( &ge; 2.15.1) installed
 - calculation of Bruvo's distance for microsatellite (SSR) markers (implemented in C for speed)
 - import of data from and export to [GenAlEx](http://biology.anu.edu.au/GenAlEx/Welcome.html "GenAlEx Homepage")
 
+## Citation
+
+Please cite poppr as:
+
+> Kamvar ZN, Tabima JF, Grünwald NJ. (2014) Poppr: an R package for genetic analysis of populations with clonal, partially clonal, and/or sexual reproduction. PeerJ 2:e281 [http://dx.doi.org/10.7717/peerj.281](http://dx.doi.org/10.7717/peerj.281)
+  
+You can obtain citation information in R by typing:
+
+```s
+citation(package = "poppr")
+```
+
+## Installation
 
 [![Build Status](https://travis-ci.org/grunwaldlab/poppr.png?branch=master)](https://travis-ci.org/grunwaldlab/poppr?branch=master)
 
 If the image above says "Passing", then that means it should be safe to install with the latest version of R. If it does not say "Passing", I am probably trying to fix whatever problem is causing it as fast as I can.
 
-## Installation
-
 ### From CRAN
 
 Binary versions for mac and windows are available for R &ge; 2.15.1 [**here**](http://cran.r-project.org/web/packages/poppr/index.html).
 
-To install, make sure R is at least version 2.15.1 (the authors recommend 3.0), and in your console, type:
+To install, make sure R is at least version 2.15.1 (the authors recommend  &ge; 3.0), and in your console, type:
 
 ```s
 install.packages("poppr")
