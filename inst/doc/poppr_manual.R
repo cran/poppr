@@ -22,8 +22,8 @@ print_command <- function(funk){
   return(as.call(fargs))
 }
 
-## ----popprcite-----------------------------------------------------------
-citation(package = "poppr")
+## ----popprcite, eval = FALSE, size="normalsize"--------------------------
+#  citation(package = "poppr")
 
 ## ----install, eval=FALSE-------------------------------------------------
 #  install.packages("poppr", dependencies=TRUE)
