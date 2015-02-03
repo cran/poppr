@@ -38,19 +38,19 @@ print_command <- function(funk){
 #  install.packages("devtools")
 
 ## ----install_github, eval = FALSE----------------------------------------
-#  library(devtools)
+#  library("devtools")
 #  install_github(repo = "grunwaldlab/poppr")
 
 ## ----install_devel, eval = FALSE-----------------------------------------
-#  library(devtools)
+#  library("devtools")
 #  install_github(repo = "grunwaldlab/poppr", ref = "devel")
 
 ## ----echo=FALSE----------------------------------------------------------
-library(poppr)
+library("poppr")
 x <- list(files="/path/to/R/poppr/files/rootrot.csv", path="/path/to/R/poppr/files")
 
 ## ----getfilefunk, eval=FALSE---------------------------------------------
-#  library(poppr)
+#  library("poppr")
 
 ## ----getfilefunk2, eval=FALSE--------------------------------------------
 #  x <- getfile()
@@ -147,7 +147,7 @@ list(
 )
 
 ## ----microsave, eval=FALSE--------------------------------------------------------------
-#  library(poppr)
+#  library("poppr")
 #  data(microbov)
 #  microbov <- as.genclone(microbov)
 #  sethierarchy(microbov) <- data.frame(other(microbov))
@@ -204,18 +204,19 @@ head(nan2@other$xy)
 ## ----genind2genalex_cat3, echo=FALSE----------------------------------------------------
 cat("Extracting the table ... Writing the table to ~/Desktop/nancycats_inds_xy.csv ... Done.\n")
 
-## ----ex_data_picture, echo = FALSE------------------------------------------------------
-library(adegenet)
+## ----ex_data_picture, echo = FALSE, fig.width=14, fig.height=4, out.width="7in", out.height = "2in"----
+library("adegenet")
 df <- data.frame(list(locus1=c("101/101", "102/103", "102/102"), 
                       locus2=c("201/201", "202/203", "203/204"), 
                       locus3=c("301/302", "301/303", "304/305")))
 dat <- df2genind(df, sep="/")$tab
 tdat <- dat
 tdat[] <- 1
-barplot(tdat, axes = FALSE)
+x <- barplot(tdat, axes = FALSE, axisnames = FALSE)
 barplot(rep(3, 12), col = rep(rainbow(3, alpha = 0.5), 3:5), axes = FALSE, add = TRUE)
 axis(2, at = 1:3 - 0.5, labels = 1:3, tick = FALSE)
-axis(3, at = c(2, 6.125, 11.5), labels = names(df), tick = FALSE)
+axis(3, at = x, labels = colnames(tdat), tick = FALSE)
+axis(1, at = c(2, 6.125, 11.5), labels = names(df), tick = FALSE)
 
 ## ----ex_genind, echo=FALSE--------------------------------------------------------------
 dat
@@ -233,7 +234,7 @@ funk <- "as.genclone"
 print_command(funk)
 
 ## ----show_genind------------------------------------------------------------------------
-library(poppr)
+library("poppr")
 data(Aeut)
 Aeut
 
@@ -381,7 +382,7 @@ funk <- "missingno"
 print_command(funk)
 
 ## ----initializing_poppr, out.width=".8\\linewidth", fig.height = 6, fig.width = 10------
-library(poppr)
+library("poppr")
 data(nancycats)
 info_table(nancycats, plot = TRUE)
 
@@ -844,13 +845,14 @@ for (i in 2:7) {
     print(res[[i]])
 }
 
-## ----mlgrare2, eval=FALSE---------------------------------------------------------------
-#  library(vegan)
+## ----mlgrare2, eval=FALSE, tidy=FALSE---------------------------------------------------
+#  library("vegan")
 #  H.year <- mlg.table(virus, bar=FALSE)
-#  rarecurve(H.year, ylab="Number of expected MLGs", sample=min(rowSums(H.year)), border = NA, fill = NA, font = 2, cex = 1, col = "blue")
+#  rarecurve(H.year, ylab="Number of expected MLGs", sample=min(rowSums(H.year)),
+#            border = NA, fill = NA, font = 2, cex = 1, col = "blue")
 
 ## ----mlgrareplot, echo=FALSE, results='hide'--------------------------------------------
-# library(vegan)
+# library("vegan")
 H.year <- mlg.table(virus, bar=FALSE)
 vegan::rarecurve(H.year, ylab="Number of expected MLGs", sample=min(rowSums(H.year)), border = NA, fill = NA, font = 2, cex = 1, col = "blue")
 
@@ -914,8 +916,8 @@ namehierarchy(Pinf) <- ~continente/pais
 Pinf
 
 ## ----Aeut_MLG_Ahena---------------------------------------------------------------------
-library(poppr)
-library(ggplot2)
+library("poppr")
+library("ggplot2")
 data(Aeut)
 Athena.tab <- mlg.table(Aeut, sublist = "Athena")
 p <- last_plot()

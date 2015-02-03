@@ -11,8 +11,8 @@ genind object and offers the following implementations:
 - drawing of dendrograms with bootstrap support for genetic distances
 - drawing of minimum spanning networks for genetic distances
 - calculation of the index of association 
-(![equation](http://latex.codecogs.com/gif.latex?I_A))
-or (![equation](http://latex.codecogs.com/gif.latex?%5Cbar%7Br%7D_d))
+(<img src="http://latex.codecogs.com/gif.latex?I_A" alt = "Index of association">)
+or (<img src="http://latex.codecogs.com/gif.latex?%5Cbar%7Br%7D_d" alt = "Standardized index of association">)
 - batch processing on any server that has R ( &ge; 2.15.1) installed
 - calculation of Bruvo's distance for microsatellite (SSR) markers (implemented in C for speed)
 - import of data from and export to [GenAlEx](http://biology.anu.edu.au/GenAlEx/Welcome.html "GenAlEx Homepage")
@@ -47,7 +47,7 @@ If you want the absolute latest version of *poppr*, see about installing from gi
 
 ### Stable and Development versions
 
-[![Build Status](https://travis-ci.org/grunwaldlab/poppr.png?branch=master)](https://travis-ci.org/grunwaldlab/poppr?branch=master)
+[![Build Status](https://travis-ci.org/grunwaldlab/poppr.png?branch=devel)](https://travis-ci.org/grunwaldlab/poppr?branch=master)
 
 If the image above says "Passing", then that means it should be safe to install with the latest version of R. If it does not say "Passing", I am probably trying to fix whatever problem is causing it as fast as I can.
 
@@ -64,17 +64,15 @@ Now you can use the `install_github()` function:
 #### For the latest stable release:    
 
 ```s
-library(devtools)
-install_github(repo = "grunwaldlab/poppr")
-library(poppr)
+devtools::install_github(repo = "grunwaldlab/poppr")
+library("poppr")
 ```
 
 #### For the bleeding edge (development) version:
 
 ```s
-library(devtools)
-install_github(repo = "grunwaldlab/poppr", ref = "devel")
-library(poppr)
+devtools::install_github(repo = "grunwaldlab/poppr@devel")
+library("poppr")
 ```
 
 ## Help / Documentation

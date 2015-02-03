@@ -7,7 +7,7 @@ knitr::opts_chunk$set(size = 'footnotesize', message = FALSE, warning = FALSE)
 knitr::opts_chunk$set(out.width = '0.95\\linewidth', fig.align = "center", fig.show = 'asis')
 
 ## ------------------------------------------------------------------------
-library(poppr)
+library("poppr")
 dat.df <- data.frame(Genotype = c("1/1", "1/2", "2/3", "3/4", "4/4"))
 dat <- as.genclone(df2genind(dat.df, sep = "/", ind.names = dat.df[[1]]))
 
@@ -21,7 +21,7 @@ names(dists) <- distances
 
 # Adding Bruvo's distance at the end because we need to specify repeat length.
 dists$Bruvo <- bruvo.dist(dat, replen = 1)
-library(ape)
+library("ape")
 par(mfrow = c(2, 3))
 x <- lapply(names(dists), function(x){ 
   plot(nj(dists[[x]]), main = x, type = "unrooted") 

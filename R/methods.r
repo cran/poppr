@@ -95,7 +95,7 @@ setMethod(
     slot(x, "loc.names") <- names(allnames)
     slot(x, "loc.nall")  <- locnall
     slot(x, "all.names") <- allnames
-    slot(x, "alllist")   <- alllist
+    slot(x, "alllist")   <- .Call("expand_indices", cumsum(locnall), length(j), PACKAGE = "poppr")
     slot(x, "names")     <- slot(x, "names")[i]
     return(x)
   }
@@ -455,6 +455,7 @@ setMethod(
     
   })
 
+setGeneric("print")
 #==============================================================================#
 #' @rdname genclone-method
 #' @export
