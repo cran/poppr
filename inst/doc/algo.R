@@ -3,7 +3,7 @@ knitr::opts_knit$set(out.format = "latex")
 thm <- knitr::knit_theme$get("acid")
 knitr::knit_theme$set(thm)
 knitr::opts_chunk$set(concordance=TRUE)
-knitr::opts_chunk$set(size = 'footnotesize', message = FALSE, warning = FALSE)
+knitr::opts_chunk$set(message = FALSE, warning = FALSE)
 knitr::opts_chunk$set(out.width = '0.95\\linewidth', fig.align = "center", fig.show = 'asis')
 
 ## ------------------------------------------------------------------------
@@ -25,6 +25,6 @@ library("ape")
 par(mfrow = c(2, 3))
 x <- lapply(names(dists), function(x){ 
   plot(nj(dists[[x]]), main = x, type = "unrooted") 
-  add.scale.bar(lcol = "red")
+  add.scale.bar(lcol = "red", length = 0.1)
 })
 
