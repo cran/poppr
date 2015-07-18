@@ -49,11 +49,12 @@ citation(package = "poppr")
 #  install.packages("/path/to/poppr.tar.gz", type="source", repos=NULL)
 
 ## ----echo=FALSE----------------------------------------------------------
-library("poppr")
 x <- list(files="/path/to/R/poppr/files/rootrot.csv", path="/path/to/R/poppr/files")
 
+## ----message = TRUE------------------------------------------------------
+library("poppr")
+
 ## ----getfilefunk, eval=FALSE---------------------------------------------
-#  library("poppr")
 #  x <- getfile()
 
 ## ----getfilex------------------------------------------------------------
