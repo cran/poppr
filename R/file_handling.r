@@ -5,8 +5,8 @@
 #!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!#
 #
 # This software was authored by Zhian N. Kamvar and Javier F. Tabima, graduate 
-# students at Oregon State University; and Dr. Nik Grünwald, an employee of 
-# USDA-ARS.
+# students at Oregon State University; Jonah C. Brooks, undergraduate student at
+# Oregon State University; and Dr. Nik Grünwald, an employee of USDA-ARS.
 #
 # Permission to use, copy, modify, and distribute this software and its
 # documentation for educational, research and non-profit purposes, without fee, 
@@ -251,7 +251,7 @@ read.genalex <- function(genalex, ploidy = 2, geo = FALSE, region = FALSE,
   
   # Removing all null columns 
   if (any(is.na(gena[1, ]))){
-    gena <- gena[, !is.na(gena[1, ])]
+    gena <- gena[, !is.na(gena[1, ]), drop = FALSE]
   }
   
   #----------------------------------------------------------------------------#
@@ -286,11 +286,11 @@ read.genalex <- function(genalex, ploidy = 2, geo = FALSE, region = FALSE,
       if (geo == TRUE){
         geoinds <- c((clm - 1), clm)
         xy      <- gena[, geoinds]
-        gena    <- gena[, -geoinds]
+        gena    <- gena[, -geoinds, drop = FALSE]
       } else {
         xy <- NULL
       }
-      gena <- gena[, c(-1, -2)]
+      gena <- gena[, c(-1, -2), drop = FALSE]
       
     } else {
       
@@ -302,12 +302,12 @@ read.genalex <- function(genalex, ploidy = 2, geo = FALSE, region = FALSE,
       if (geo == TRUE){
         geoinds <- c((clm-1), clm)
         xy      <- gena[, geoinds]
-        gena    <- gena[, -geoinds]
+        gena    <- gena[, -geoinds, drop = FALSE]
       } else {
         xy <- NULL
       }
       ind.vec <- gena[, clm] # Individual Vector
-      gena    <- gena[, -c(1, 2, clm)] # removing the non-genotypic columns
+      gena    <- gena[, -c(1, 2, clm), drop = FALSE] # removing the non-genotypic columns
     }
   } else if (geo == TRUE & length(pop.info) == npops){
     # There are no Regions specified, but there are geographic coordinates
@@ -315,14 +315,14 @@ read.genalex <- function(genalex, ploidy = 2, geo = FALSE, region = FALSE,
     pop.vec <- gena[, 2]
     ind.vec <- gena[, 1]
     xy      <- gena[, c((clm-1), clm)]
-    gena    <- gena[, -c(1, 2, (clm-1), clm)]
+    gena    <- gena[, -c(1, 2, (clm-1), clm), drop = FALSE]
   } else {
     # There are no Regions or geographic coordinates
     reg.vec <- NULL
     pop.vec <- gena[, 2]
     ind.vec <- gena[, 1]
     xy <- NULL
-    gena <- gena[, -c(1, 2)]
+    gena <- gena[, -c(1, 2), drop = FALSE]
   }
   
   #----------------------------------------------------------------------------#
@@ -336,12 +336,14 @@ read.genalex <- function(genalex, ploidy = 2, geo = FALSE, region = FALSE,
   if (nloci == clm/ploidy & ploidy > 1){
     # Missing data in genalex is coded as "0" for non-presence/absence data.
     # this converts it to "NA" for adegenet.
-    if(any(gena.mat == "0") & ploidy < 3){
+    if (any(gena.mat == "0") & ploidy < 3){
       gena[gena.mat == "0"] <- NA
+    } else if (any(is.na(gena.mat)) & ploidy > 2) {
+      gena[is.na(gena.mat)] <- "0"
     }
     type  <- 'codom'
     loci  <- which((1:clm) %% ploidy == 1)
-    gena2 <- gena[, loci]
+    gena2 <- gena[, loci, drop = FALSE]
 
     # Collapsing all alleles into single loci.
     lapply(loci, function(x) gena2[, ((x-1)/ploidy)+1] <<-

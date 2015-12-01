@@ -12,7 +12,7 @@ dat.df <- data.frame(Genotype = c("1/1", "1/2", "2/3", "3/4", "4/4"))
 dat <- as.genclone(df2genind(dat.df, sep = "/", ind.names = dat.df[[1]]))
 
 ## ------------------------------------------------------------------------
-distances <- c("Nei", "Rogers", "Edwards", "Reynolds", "Provesti")
+distances <- c("Nei", "Rogers", "Edwards", "Reynolds", "Prevosti")
 dists <- lapply(distances, function(x){
   DISTFUN <- match.fun(paste(tolower(x), "dist", sep = "."))
   DISTFUN(dat)

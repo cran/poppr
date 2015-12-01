@@ -122,8 +122,8 @@ cat("Extracting the table ... Writing the table to ~/Desktop/nancycats_pop_xy.cs
 
 ## ----nancy_grow_xy----------------------------------------------------------------------
 nan2 <- nancycats
-other(nan2)$xy <- other(nan2)$xy[rep(1:17, table(pop(nan2))), ]
-head(other(nan2)$xy)
+other(nan2)$xy <- other(nan2)$xy[pop(nan2), ]
+tail(other(nan2)$xy)
 
 ## ----genind2genalex_nancy_grow, eval=FALSE----------------------------------------------
 #  genind2genalex(nan2, "~/Desktop/nancycats_inds_xy.csv", geo = TRUE)
