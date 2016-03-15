@@ -42,42 +42,53 @@
 #!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!#
 #!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!#
 #==============================================================================#
-#' Calculate a distance matrix comparing samples based on the number of alleles
-#' that differ in zygosity.
+#' Calculate a dissimilarity distance matrix for SNP data.
 #' 
-#' This function does pairwise comparisons between diploid samples in a genlight
-#' object. The number representing the distance between two samples is equal to
-#' the number of alleles in the samples that do not have the same zygosity.
-#'
-#' @param x a genlight, genind, or genclone object. 
-#'
-#' @param percent \code{logical}. Should the distance be represented from 0 to 1? 
-#' Default set to \code{TRUE}. \code{FALSE} will return the distance represented 
-#' as integers from 1 to n where n is the number of loci. 
-#'  
-#' @param mat \code{logical}. Return a matrix object. Default set to  
-#' \code{FALSE}, returning a dist object. \code{TRUE} returns a matrix object. 
-#'
+#' This function performs the same task as \code{\link{diss.dist}}, calculating 
+#' the number of allelic differences between two samples.
+#' 
+#' @param x a \code{\link{genlight}}, \code{\link{genind}},
+#'   \code{\link{genclone}}, or \code{\link{snpclone}} object.
+#'   
+#' @param percent \code{logical}. Should the distance be represented from 0 to 
+#'   1? Default set to \code{TRUE}. \code{FALSE} will return the distance 
+#'   represented as integers from 1 to n where n is the number of loci.
+#'   
+#' @param mat \code{logical}. Return a matrix object. Default set to 
+#'   \code{FALSE}, returning a dist object. \code{TRUE} returns a matrix object.
+#'   
 #' @param missing_match \code{logical}. Determines whether two samples differing
-#' by missing data in a location should be counted as matching at that location.
-#' Default set to \code{TRUE}, which forces missing data to match with anything. 
-#' \code{FALSE} forces missing data to not match with any other information. 
-#'
-#' @param differences_only \code{logical}. Determines whether the matrix should
-#' count differences or distances. For instance, 0 to 2 would be a distance of 2
-#' but a difference of 1.
-#'
-#' @param threads The maximum number of parallel threads to be used within this
-#'   function. A value of 0 (default) will attempt to use as many threads as there
-#'   are available cores/CPUs. In most cases this is ideal. A value of 1 will force
-#'   the function to run serially, which may increase stability on some systems.
-#'   Other values may be specified, but should be used with caution.
-#'
-#' 
-#' @return Pairwise distances between individuals present in the genlight object.
+#'   by missing data in a location should be counted as matching at that 
+#'   location. Default set to \code{TRUE}, which forces missing data to match 
+#'   with anything. \code{FALSE} forces missing data to not match with any other
+#'   information.
+#'   
+#' @param differences_only \code{logical}. Determines whether the matrix should 
+#'   count differences or distances. For instance, 0 to 2 would be a distance of
+#'   2 but a difference of 1.
+#'   
+#' @param threads The maximum number of parallel threads to be used within this 
+#'   function. A value of 0 (default) will attempt to use as many threads as 
+#'   there are available cores/CPUs. In most cases this is ideal. A value of 1 
+#'   will force the function to run serially, which may increase stability on 
+#'   some systems. Other values may be specified, but should be used with 
+#'   caution.
+#'   
+#'   
+#' @details The distance calculated here is quite simple and goes by many names,
+#'   depending on its application. The most familiar name might be the Hamming 
+#'   distance, or the number of differences between two strings.
+#'   
+#' @return A dist object containing pairwise distances between samples.
+#'   
 #' @author Zhian N. Kamvar, Jonah C. Brooks
 #' 
 #' @export
+#' @seealso \code{\link{diss.dist}},
+#'    \code{\link{snpclone}},
+#'    \code{\link[adegenet]{genlight}},
+#'    \code{\link{win.ia}}, 
+#'    \code{\link{samp.ia}}
 #' @examples
 #' set.seed(999)
 #' x <- glSim(n.ind = 10, n.snp.nonstruc = 5e2, n.snp.struc = 5e2, ploidy = 2)
@@ -85,8 +96,9 @@
 #' system.time(xd <- bitwise.dist(x))
 #' xd
 #==============================================================================#
-bitwise.dist <- function(x, percent=TRUE, mat=FALSE, missing_match=TRUE, differences_only=FALSE, threads=0){
-  stopifnot(class(x)[1] %in% c("genlight", "genclone", "genind", "snpclone"))
+bitwise.dist <- function(x, percent = TRUE, mat = FALSE, missing_match = TRUE, 
+                         differences_only = FALSE, threads = 0){
+  stopifnot(inherits(x, c("genlight", "genclone", "genind", "snpclone")))
   # Stop if the ploidy of the genlight object is not consistent
   stopifnot(min(ploidy(x)) == max(ploidy(x))) 
   # Stop if the ploidy of the genlight object is not haploid or diploid
@@ -95,7 +107,7 @@ bitwise.dist <- function(x, percent=TRUE, mat=FALSE, missing_match=TRUE, differe
   ploid     <- min(ploidy(x))
   ind.names <- indNames(x)
   inds      <- nInd(x)
-  numPairs   <- nLoc(x)
+  numPairs  <- nLoc(x)
 
   # Use Prevosti if this is a genclone or genind object
   if(!is(x, "genlight")){
@@ -139,8 +151,8 @@ bitwise.dist <- function(x, percent=TRUE, mat=FALSE, missing_match=TRUE, differe
   }
   dist.mat <- pairwise_dist
   dim(dist.mat) <- c(inds,inds)
-  colnames(dist.mat)            <- ind.names
-  rownames(dist.mat)            <- ind.names
+  colnames(dist.mat) <- ind.names
+  rownames(dist.mat) <- ind.names
   if (percent){
     if(differences_only)
     {
@@ -184,35 +196,38 @@ poppr_has_parallel <- function(){
 #==============================================================================#
 #' Calculate the index of association between samples in a genlight object.
 #' 
-#' This function parses over a genlight object to calculate and return the
-#' index of association for those samples.
-#'
-#' @param x a genlight object. 
-#'
-#' @param missing_match a boolean determining whether missing data should be
-#'   considered a match. If TRUE (default) missing data at a locus will match
-#'   with any data at that locus in each comparison. If FALSE, missing data at
-#'   a locus will cause all comparisons to return the maximum possible distance
-#'   at that locus (ie, if sample 1 has missing data at locus 1, and sample 2 
-#'   is heterozygous at locus 1, the distance at that locus will be 1. If sample
-#'   2 was heterozygous or missing at locus 1, the distance would be 2.
-#'
-#' @param differences_only a boolean determining how distance should be counted
-#'   for diploids. Whether TRUE or FALSE the distance between a heterozygous locus
-#'   and a homozygous locus is 1. If FALSE (default) the distance between opposite
-#'   homozygous loci is 2. If TRUE that distance counts as 1, indicating only that
-#'   the two samples differ at that locus.
-#'
-#' @param threads The maximum number of parallel threads to be used within this
-#'   function. A value of 0 (default) will attempt to use as many threads as there
-#'   are available cores/CPUs. In most cases this is ideal. A value of 1 will force
-#'   the function to run serially, which may increase stability on some systems.
-#'   Other values may be specified, but should be used with caution.
-#'
-#' @return Index of association representing the samples in this genlight object.
-#' @author Zhian N. Kamvar, Jonah C. Brooks
+#' This function parses over a genlight object to calculate and return the index
+#' of association for those samples.
 #' 
+#' @param x a \code{\link{genlight}} or \code{\link{snpclone}} object.
+#'   
+#' @param missing_match a boolean determining whether missing data should be 
+#'   considered a match. If TRUE (default) missing data at a locus will match 
+#'   with any data at that locus in each comparison. If FALSE, missing data at a
+#'   locus will cause all comparisons to return the maximum possible distance at
+#'   that locus (ie, if sample 1 has missing data at locus 1, and sample 2 is
+#'   heterozygous at locus 1, the distance at that locus will be 1. If sample 2
+#'   was heterozygous or missing at locus 1, the distance would be 2.
+#'   
+#' @param differences_only a boolean determining how distance should be counted 
+#'   for diploids. Whether TRUE or FALSE the distance between a heterozygous
+#'   locus and a homozygous locus is 1. If FALSE (default) the distance between
+#'   opposite homozygous loci is 2. If TRUE that distance counts as 1,
+#'   indicating only that the two samples differ at that locus.
+#'   
+#' @param threads The maximum number of parallel threads to be used within this 
+#'   function. A value of 0 (default) will attempt to use as many threads as
+#'   there are available cores/CPUs. In most cases this is ideal. A value of 1
+#'   will force the function to run serially, which may increase stability on
+#'   some systems. Other values may be specified, but should be used with
+#'   caution.
+#'   
+#' @return Index of association representing the samples in this genlight
+#'   object.
+#' @author Zhian N. Kamvar, Jonah C. Brooks
+#'   
 #' @export
+#' @seealso \code{\link{win.ia}}, \code{\link{samp.ia}}
 #' @keywords internal
 #==============================================================================#
 bitwise.ia <- function(x, missing_match=TRUE, differences_only=FALSE, threads=0){
@@ -267,7 +282,7 @@ bitwise.ia <- function(x, missing_match=TRUE, differences_only=FALSE, threads=0)
 #' function will scan windows across the loci positions and calculate the index
 #' of association.
 #' 
-#' @param x a genlight object.
+#' @param x a \code{\link{genlight}} or \code{\link{snpclone}} object.
 #'   
 #' @param window an integer specifying the size of the window.
 #'   
@@ -293,6 +308,11 @@ bitwise.ia <- function(x, missing_match=TRUE, differences_only=FALSE, threads=0)
 #' @author Zhian N. Kamvar, Jonah C. Brooks
 #'   
 #' @export
+#' @seealso \code{\link[adegenet]{genlight}},
+#'    \code{\link{snpclone}},
+#'    \code{\link{samp.ia}},
+#'    \code{\link{ia}},
+#'    \code{\link{bitwise.dist}}
 #' @examples
 #' 
 #' # with structured snps assuming 1e4 positions
@@ -345,7 +365,7 @@ win.ia <- function(x, window = 100L, min.snps = 3L, threads = 1L, quiet = FALSE)
 #' sense to calculate the index of association over that many loci, this
 #' function will randomly sample sites to calculate the index of association.
 #' 
-#' @param x a genlight object.
+#' @param x a \code{\link{genlight}} or \code{\link{snpclone}} object.
 #'   
 #' @param n.snp the number of snps to be used to calculate standardized index
 #' of association.
@@ -370,22 +390,27 @@ win.ia <- function(x, window = 100L, min.snps = 3L, threads = 1L, quiet = FALSE)
 #' @author Zhian N. Kamvar, Jonah C. Brooks
 #'   
 #' @export
+#' @seealso \code{\link[adegenet]{genlight}},
+#'    \code{\link{snpclone}},
+#'    \code{\link{win.ia}},
+#'    \code{\link{ia}},
+#'    \code{\link{bitwise.dist}}
 #' @examples
-#' \dontrun{
 #' # with structured snps assuming 1e4 positions
 #' set.seed(999)
-#' x <- glSim(n.ind = 10, n.snp.nonstruc = 5e2, n.snp.struc = 5e2, ploidy = 2)
+#' x <- glSim(n.ind = 10, n.snp.nonstruc = 5e2, 
+#'            n.snp.struc = 5e2, ploidy = 2,
+#'            parallel = FALSE)
 #' position(x) <- sort(sample(1e4, 1e3))
 #' res <- samp.ia(x)
-#' hist(res)
+#' hist(res, breaks = "fd")
 #' 
 #' # with unstructured snps assuming 1e4 positions
 #' set.seed(999)
 #' x <- glSim(n.ind = 10, n.snp.nonstruc = 1e3, ploidy = 2)
 #' position(x) <- sort(sample(1e4, 1e3))
 #' res <- samp.ia(x)
-#' hist(res)
-#' }
+#' hist(res, breaks = "fd")
 #==============================================================================#
 samp.ia <- function(x, n.snp = 100L, reps = 100L, threads = 1L, quiet = FALSE){
   stopifnot(is(x, "genlight"))

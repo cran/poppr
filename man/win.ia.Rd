@@ -7,7 +7,7 @@
 win.ia(x, window = 100L, min.snps = 3L, threads = 1L, quiet = FALSE)
 }
 \arguments{
-\item{x}{a genlight object.}
+\item{x}{a \code{\link{genlight}} or \code{\link{snpclone}} object.}
 
 \item{window}{an integer specifying the size of the window.}
 
@@ -59,5 +59,12 @@ plot(res, type = "l")
 }
 \author{
 Zhian N. Kamvar, Jonah C. Brooks
+}
+\seealso{
+\code{\link[adegenet]{genlight}},
+   \code{\link{snpclone}},
+   \code{\link{samp.ia}},
+   \code{\link{ia}},
+   \code{\link{bitwise.dist}}
 }
 

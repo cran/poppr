@@ -11,6 +11,7 @@ aclone <- as.genclone(Aeut)
 atab   <- mlg.table(Aeut, plot = FALSE)
 ptab   <- mlg.table(partial_clone, plot = FALSE)
 ntab   <- mlg.table(nancycats, plot = FALSE)
+sim    <- adegenet::glSim(10, 1e2, ploidy = 2, parallel = FALSE)
 lu <- function(x) length(unique(x))
 
 test_that("multilocus genotype vector is same length as samples", {
@@ -36,8 +37,10 @@ test_that("clone correction works for specified levels and throws errors", {
   
   # Errors for unexpected behavior.
   expect_error(clonecorrect(1), "1 is not")
-  expect_error(clonecorrect(aclone, ~field/sample), "field/sample") 
+  expect_error(clonecorrect(aclone, ~field/sample), "field, sample") 
   expect_error(clonecorrect(aclone, 1L:4L), "NA")
+  strata(ac) <- NULL
+  expect_warning(clonecorrect(ac), "Strata is not set for ac")
 })
 
 test_that("multilocus genotype matrix matches mlg.vector and data", {
@@ -67,9 +70,18 @@ test_that("multilocus genotype matrix can utilize strata", {
   expect_equal(nrow(pcont), 2)
 })
 
-test_that("mll works for genind objects", {
+test_that("mll and nmll works for genind objects", {
   expect_warning(atest <- mll(Aeut, "original"))
+  nAeut <- nmll(Aeut)
   expect_equal(atest, amlg)
+  expect_equal(nAeut, lu(amlg))
+})
+
+test_that("mll and nmll works for genlight objects", {
+  expect_warning(atest <- mll(sim, "original"))
+  nAeut <- nmll(sim)
+  expect_equal(atest, 1:10)
+  expect_equal(nAeut, 10)
 })
 
 test_that("mll can convert a numeric mlg slot to MLG", {
@@ -80,11 +92,11 @@ test_that("mll can convert a numeric mlg slot to MLG", {
 
 test_that("MLG class can print expected", {
   mll(Pinf) <- "original"
-  expect_output(Pinf@mlg, "86 original mlgs.")
+  expect_output(show(Pinf@mlg), "86 original mlgs.")
   mll(Pinf) <- "custom"
-  expect_output(Pinf@mlg, "86 custom mlgs.")
+  expect_output(show(Pinf@mlg), "86 custom mlgs.")
   mll(Pinf) <- "contracted"
-  expect_output(Pinf@mlg, "86 contracted mlgs with a cutoff of 0 based on the function nei.dist")
+  expect_output(show(Pinf@mlg), "86 contracted mlgs with a cutoff of 0 based on the function nei.dist")
   mll(Pinf) <- "original"
 })
 
@@ -120,9 +132,9 @@ test_that("mlg.crosspop can take sublist and blacklist", {
 "9")), MLG.52 = structure(c(1L, 1L), .Names = c("5", "9"))), .Names = c("MLG.13", 
 "MLG.23", "MLG.24", "MLG.32", "MLG.52"))
   
-  expect_output(mlg.crosspop(Athena, blacklist = 1), "MLG.13: \\(2 inds\\) 8 9")
-  expect_output(mlg.crosspop(Athena, blacklist = "1"), "MLG.13: \\(2 inds\\) 8 9")
-  expect_output(mlg.crosspop(Athena, sublist = 1:10, blacklist = "1"), "MLG.13: \\(2 inds\\) 8 9")
+  expect_output(show(mlg.crosspop(Athena, blacklist = 1)), "MLG.13: \\(2 inds\\) 8 9")
+  expect_output(show(mlg.crosspop(Athena, blacklist = "1")), "MLG.13: \\(2 inds\\) 8 9")
+  expect_output(show(mlg.crosspop(Athena, sublist = 1:10, blacklist = "1")), "MLG.13: \\(2 inds\\) 8 9")
   expect_equivalent(mlg.crosspop(Athena, sublist = 1:10, blacklist = "1", quiet = TRUE), expectation)
 })
 
@@ -247,9 +259,9 @@ test_that("subsetting and resetting MLGs works", {
   fullmlg <- mlg(Pinf[loc = locNames(Pinf)[-c(1:5)]], quiet = TRUE)
   realmlg <- mlg(Pinf[loc = locNames(Pinf)[-c(1:5)], mlg.reset = TRUE], quiet = TRUE)
   expect_equal(pmlg, Pinf@mlg[])
-  expect_that(pmlg, not(equals(pres)))
+  expect_false(identical(pmlg, pres))
   expect_equal(Pinf[mlg.reset = TRUE]@mlg[], pres)
-  expect_that(fullmlg, is_more_than(realmlg))
+  expect_gt(fullmlg, realmlg)
   mll(Pinf) <- "original"
   expect_equal(mll(mll.reset(Pinf, TRUE)), pres)
   mll.custom(Pinf) <- paste("MLL", mll(Pinf))
@@ -285,15 +297,25 @@ test_that("multilocus genotype filtering functions correctly", {
 
   # The different methods of passing distance should produce the same results
   adis <- diss.dist(missingno(Aeut, "mean", quiet=TRUE))
-  pdis <- diss.dist(missingno(partial_clone, "mean", quiet=TRUE))
-  ndis <- diss.dist(missingno(nancycats, "mean", quiet=TRUE))
+  suppressWarnings({
+    pdis <- diss.dist(missingno(partial_clone, "mean", quiet=TRUE))
+    ndis <- diss.dist(missingno(nancycats, "mean", quiet=TRUE))
+  })
 
-  expect_equal(mlg.filter(Aeut, 0.3, missing="mean", distance=adis),  mlg.filter(Aeut, 0.3, missing="mean", distance=diss.dist))
-  expect_equal(mlg.filter(Aeut, 0.3, missing="mean", distance=adis),  mlg.filter(Aeut, 0.3, missing="mean", distance="diss.dist"))
-  expect_equal(mlg.filter(nancycats, 0.3, missing="mean", distance=ndis),  mlg.filter(nancycats, 0.3, missing="mean", distance=diss.dist))
-  expect_equal(mlg.filter(nancycats, 0.3, missing="mean", distance=ndis),  mlg.filter(nancycats, 0.3, missing="mean", distance="diss.dist"))
-  expect_equal(mlg.filter(partial_clone, 0.3, missing="mean", distance=pdis),  mlg.filter(partial_clone, 0.3, missing="mean", distance=diss.dist))
-  expect_equal(mlg.filter(partial_clone, 0.3, missing="mean", distance=pdis),  mlg.filter(partial_clone, 0.3, missing="mean", distance="diss.dist"))
+  expect_equal(mlg.filter(Aeut, 0.3, missing="mean", distance=adis), 
+               mlg.filter(Aeut, 0.3, missing="mean", distance=diss.dist))
+  expect_equal(mlg.filter(Aeut, 0.3, missing="mean", distance=adis),  
+               mlg.filter(Aeut, 0.3, missing="mean", distance="diss.dist"))
+  suppressWarnings({
+    expect_equal(mlg.filter(nancycats, 0.3, missing="mean", distance=ndis), 
+                 mlg.filter(nancycats, 0.3, missing="mean", distance=diss.dist))
+    expect_equal(mlg.filter(nancycats, 0.3, missing="mean", distance=ndis), 
+                 mlg.filter(nancycats, 0.3, missing="mean", distance="diss.dist"))
+  })
+  expect_equal(mlg.filter(partial_clone, 0.3, missing="mean", distance=pdis), 
+               mlg.filter(partial_clone, 0.3, missing="mean", distance=diss.dist))
+  expect_equal(mlg.filter(partial_clone, 0.3, missing="mean", distance=pdis), 
+               mlg.filter(partial_clone, 0.3, missing="mean", distance="diss.dist"))
 })
 
 

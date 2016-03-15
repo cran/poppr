@@ -47,52 +47,61 @@
 #' This function is a wrapper to mlg.filter. It will calculate all of the stats 
 #' for mlg.filter utilizing all of the algorithms.
 #' 
-#' @param x a genind or genlight object
+#' @param x a \code{\link{genind}}, \code{\link{genclone}},
+#'   \code{\link{genlight}}, or \code{\link{snpclone}} object
 #' @param distance a distance function or matrix
-#' @param threshold a threshold to be passed to mlg.filter
+#' @param threshold a threshold to be passed to \code{\link{mlg.filter}} 
+#'   (Default: 1e6)
 #' @param stats what statistics should be calculated.
 #' @param missing how to treat missing data with mlg.filter
 #' @param plot If the threshold is a maximum threshold, should the statistics be
 #'   plotted (Figure 2)
-#' @param cols the colors to use for each algorithm (defaults to set1 of
+#' @param cols the colors to use for each algorithm (defaults to set1 of 
 #'   \pkg{RColorBrewer}).
 #' @param nclone the number of multilocus genotypes you expect for the data. 
 #'   This will draw horizontal line on the graph at the value nclone and then 
 #'   vertical lines showing the cutoff thresholds for each algorithm.
 #' @param hist if you want a histogram to be plotted behind the statistics, 
-#'   select a method here. Available methods are "sturges", "fd", or "scott"
-#'   (default) as documented in \code{\link[graphics]{hist}}. If you don't want
+#'   select a method here. Available methods are "sturges", "fd", or "scott" 
+#'   (default) as documented in \code{\link[graphics]{hist}}. If you don't want 
 #'   to plot the histogram, set \code{hist = NULL}.
 #' @param ... extra parameters passed on to the distance function.
 #'   
-#' @return a list of results from mlg.filter from the three algorithms.
+#' @return a list of results from mlg.filter from the three
+#'   algorithms. (returns invisibly if \code{plot = TRUE})
 #' @export
+#' @seealso \code{\link{mlg.filter}} \code{\link{cutoff_predictor}} 
+#'   \code{\link{bitwise.dist}} \code{\link{diss.dist}}
 #' @note This function originally appeared in 
 #'   \href{http://dx.doi.org/10.5281/zenodo.17424}{DOI: 10.5281/zenodo.17424}
-#' @references ZN Kamvar, JC Brooks, and NJ Grünwald. 2015. Supplementary
-#' Material for Frontiers Plant Genetics and Genomics 'Novel R tools for
-#' analysis of genome-wide population genetic data with emphasis on clonality'.
-#' DOI: \href{http://dx.doi.org/10.5281/zenodo.17424}{10.5281/zenodo.17424}
-#' 
-#' Kamvar ZN, Brooks JC and Grünwald NJ (2015) Novel R tools for analysis of 
-#' genome-wide population genetic data with emphasis on clonality. Front. Genet.
-#' 6:208. doi:
-#' \href{http://dx.doi.org/10.3389/fgene.2015.00208}{10.3389/fgene.2015.00208}
-#' 
+#' @references ZN Kamvar, JC Brooks, and NJ Grünwald. 2015. Supplementary 
+#'   Material for Frontiers Plant Genetics and Genomics 'Novel R tools for 
+#'   analysis of genome-wide population genetic data with emphasis on
+#'   clonality'. DOI:
+#'   \href{http://dx.doi.org/10.5281/zenodo.17424}{10.5281/zenodo.17424}
+#'   
+#'   Kamvar ZN, Brooks JC and Grünwald NJ (2015) Novel R tools for analysis of 
+#'   genome-wide population genetic data with emphasis on clonality. Front.
+#'   Genet. 6:208. doi: 
+#'   \href{http://dx.doi.org/10.3389/fgene.2015.00208}{10.3389/fgene.2015.00208}
+#'   
 #' @author Zhian N. Kamvar, Jonah C. Brooks
 #' @examples
 #' \dontrun{
 #' data(Pinf)
-#' filter_stats(Pinf, distance = diss.dist, percent = TRUE, plot = TRUE)
+#' pinfreps <- fix_replen(Pinf, c(2, 2, 6, 2, 2, 2, 2, 2, 3, 3, 2))
+#' filter_stats(Pinf, distance = bruvo.dist, replen = pinfreps, plot = TRUE)
 #' }
 #==============================================================================#
 filter_stats <- function(x, distance = bitwise.dist, 
-                         threshold = 1 + .Machine$double.eps^0.5, 
+                         threshold = 1e6 + .Machine$double.eps^0.5, 
                          stats = "All", missing = "ignore", plot = FALSE, 
                          cols = NULL, nclone = NULL, hist = "Scott", ...){
-  if (!"dist" %in% class(distance)){
-    DIST    <- match.fun(distance)
-    x       <- missingno(x, type = missing)
+  if (!inherits(distance, "dist")){
+    DIST <- match.fun(distance)
+    if (inherits(x, "genind")){
+      x <- missingno(x, type = missing)
+    }
     distmat <- DIST(x, ...)
   } else {
     distmat <- distance
@@ -107,6 +116,7 @@ filter_stats <- function(x, distance = bitwise.dist,
   if (stats == "All"){
     if (plot){
       plot_filter_stats(x, fanlist, distmat, cols, nclone, hist)
+      return(invisible(fanlist))
     }
   }
   return(fanlist)
@@ -125,7 +135,7 @@ filter_stats <- function(x, distance = bitwise.dist,
 #'   
 #' @return a numeric value representing the threshold at which multilocus 
 #'   lineages should be defined.
-#'   
+#' @seealso \code{\link{filter_stats}} \code{\link{mlg.filter}}
 #' @note This function originally appeared in 
 #'   \href{http://dx.doi.org/10.5281/zenodo.17424}{DOI: 10.5281/zenodo.17424}. 
 #'   This is a bit of a blunt instrument.
@@ -143,15 +153,24 @@ filter_stats <- function(x, distance = bitwise.dist,
 #' @author Zhian N. Kamvar
 #' @examples
 #' \dontrun{
+#' 
 #' data(Pinf)
-#' pthresh <- mlg.filter(Pinf, distance = diss.dist, percent = TRUE, 
-#'                       threshold = 1.1, stats = "THRESH")
-#' cutoff_predictor(pthresh)
+#' pinfreps <- fix_replen(Pinf, c(2, 2, 6, 2, 2, 2, 2, 2, 3, 3, 2))
+#' pthresh  <- filter_stats(Pinf, distance = bruvo.dist, replen = pinfreps, 
+#'                          plot = TRUE, stats = "THRESHOLD")
+#' 
+#' # prediction for farthest neighbor
+#' cutoff_predictor(pthresh$farthest)
+#' 
+#' # prediction for all algorithms
+#' p <- sapply(pthresh, cutoff_predictor)
+#' abline(v = p)
+#' 
 #' }
 #==============================================================================#
 cutoff_predictor <- function(thresholds, fraction = 0.5){
-  frac <- 1:round(length(thresholds)*fraction)
-  diffs <- diff(thresholds[frac])
+  frac    <- 1:round(length(thresholds)*fraction)
+  diffs   <- diff(thresholds[frac])
   diffmax <- which.max(diffs)
   mean(thresholds[diffmax:(diffmax + 1)])
 }
@@ -169,6 +188,7 @@ cutoff_predictor <- function(thresholds, fraction = 0.5){
 #' @return a plot depicting how many MLLs are collapsed as the genetic distance 
 #'   increases for each algorithm.
 #' @export
+#' @seealso \code{\link{filter_stats}}
 #' @note This function originally appeared in 
 #'   \href{http://dx.doi.org/10.5281/zenodo.17424}{DOI: 10.5281/zenodo.17424}
 #' @author Zhian N. Kamvar

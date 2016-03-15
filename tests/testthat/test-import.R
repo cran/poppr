@@ -23,6 +23,16 @@ A009	7_09_BB	224	97
 A006	7_09_BB	224	97
 A013	7_09_BB	224	97"
 
+zzna <- "13	6	1	6											
+			7_09_BB											
+Ind	Pop	CHMFc4	CHMFc5	CHMFc12	SEA	SED	SEE	SEG	SEI	SEL	SEN	SEP	SEQ	SER
+A004	7_09_BB	224	85	163	132	133	156	 	116	143	227	257	142	145
+A002	7_09_BB	224	97	159	156	129	156	144	113	143	231	261	136	153
+A011	7_09_BB	224	97	159	160	133	156	126	119	147	227	257	134	149
+A009	7_09_BB	224	97	159	160	133	156	126	119	147	227	261	134	149
+A006	7_09_BB	224	97	159	160	133	156	126	119	147	235	261	134	149
+A013	7_09_BB	224	97	163	160	133	156	126	119	147	235	257	134	149"
+
 z <- "1	6	1	6
 7_09_BB			
 Ind	Pop	CHMFc4	
@@ -48,24 +58,31 @@ test_that("basic text connections work", {
 	expect_equivalent(tab(gen), tab(monpop[1:6, drop = TRUE]))
 })
 
+test_that("missing rows and columns are eliminated", {
+  gen <- read.genalex(textConnection(zzna), sep = "\t")
+  expect_true(any(is.na(tab(gen))))
+  expect_equal(nInd(gen), 6L)
+  expect_equal(nLoc(gen), 13L)
+})
+
 test_that("single locus diploids can be imported", {
   gen <- read.genalex(textConnection(zz), sep = "\t")
   expect_equivalent(nLoc(gen), 1L)
-  expect_output(gen, "diploid")
+  expect_output(show(gen), "diploid")
 })
 
 test_that("single locus haploids can be imported", {
   gen <- read.genalex(textConnection(z), sep = "\t")
   expect_equivalent(nLoc(gen), 1L)
-  expect_output(gen, "haploid")
+  expect_output(show(gen), "haploid")
 })
 
 test_that("missing cells are converted to zeroes for polyploids", {
   skip_on_cran()
   gen <- read.genalex(textConnection(zna), sep = "\t", ploidy = 4L)
   expect_equivalent(nLoc(gen), 3L)
-  expect_output(gen, "tetraploid")
-  expect_output(recode_polyploids(gen, newploidy = TRUE), "triploid \\(1\\) and tetraploid \\(5\\)")
+  expect_output(show(gen), "tetraploid")
+  expect_output(show(recode_polyploids(gen, newploidy = TRUE)), "triploid \\(1\\) and tetraploid \\(5\\)")
 })
 
 test_that("genclone objects can be saved and restored", {
@@ -106,7 +123,7 @@ test_that("errors are reported", {
 	file2 <- tempfile()
 	genind2genalex(Pinf, filename = file1, quiet = TRUE)
 	genind2genalex(pr, filename = file2, quiet = TRUE)
-	expect_that(Pinf2 <- read.genalex(file1, ploidy = 4), not(throws_error()))
+	expect_error(Pinf2 <- read.genalex(file1, ploidy = 4), NA)
 
 	expect_error(Pinf2 <- read.genalex(file1), "set the flag?")
 	expect_error(Pinf2 <- read.genalex(file1, geo = TRUE), "geo = TRUE")
@@ -169,10 +186,10 @@ test_that("genalex can import geographic information", {
 	custpram <- tempfile()
 	custpop  <- sample(.genlab("p", 10), nInd(Pram), replace = TRUE)
 
-	expect_output(genind2genalex(Pram, filename = filepram, geo = TRUE), filepram)
-	expect_output(genind2genalex(Pram, pop = ~SOURCE, allstrata = FALSE, filename = sourpram, geo = TRUE), sourpram)
-	expect_output(genind2genalex(Pram, pop = ~STATE/YEAR, allstrata = FALSE, filename = staypram, geo = TRUE), staypram)
-	expect_output(genind2genalex(Pram, pop = custpop, allstrata = FALSE, filename = custpram, geo = TRUE), custpram)
+	expect_output(show(genind2genalex(Pram, filename = filepram, geo = TRUE)), filepram)
+	expect_output(show(genind2genalex(Pram, pop = ~SOURCE, allstrata = FALSE, filename = sourpram, geo = TRUE)), sourpram)
+	expect_output(show(genind2genalex(Pram, pop = ~STATE/YEAR, allstrata = FALSE, filename = staypram, geo = TRUE)), staypram)
+	expect_output(show(genind2genalex(Pram, pop = custpop, allstrata = FALSE, filename = custpram, geo = TRUE)), custpram)
 
 	expect_error(read.genalex(filepram))
 	pall <- read.genalex(filepram, geo = TRUE)

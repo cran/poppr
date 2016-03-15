@@ -4,16 +4,18 @@
 \alias{filter_stats}
 \title{Utilize all algorithms of mlg.filter}
 \usage{
-filter_stats(x, distance = bitwise.dist, threshold = 1 +
+filter_stats(x, distance = bitwise.dist, threshold = 1e+06 +
   .Machine$double.eps^0.5, stats = "All", missing = "ignore",
   plot = FALSE, cols = NULL, nclone = NULL, hist = "Scott", ...)
 }
 \arguments{
-\item{x}{a genind or genlight object}
+\item{x}{a \code{\link{genind}}, \code{\link{genclone}},
+\code{\link{genlight}}, or \code{\link{snpclone}} object}
 
 \item{distance}{a distance function or matrix}
 
-\item{threshold}{a threshold to be passed to mlg.filter}
+\item{threshold}{a threshold to be passed to \code{\link{mlg.filter}} 
+(Default: 1e6)}
 
 \item{stats}{what statistics should be calculated.}
 
@@ -22,7 +24,7 @@ filter_stats(x, distance = bitwise.dist, threshold = 1 +
 \item{plot}{If the threshold is a maximum threshold, should the statistics be
 plotted (Figure 2)}
 
-\item{cols}{the colors to use for each algorithm (defaults to set1 of
+\item{cols}{the colors to use for each algorithm (defaults to set1 of 
 \pkg{RColorBrewer}).}
 
 \item{nclone}{the number of multilocus genotypes you expect for the data. 
@@ -30,14 +32,15 @@ This will draw horizontal line on the graph at the value nclone and then
 vertical lines showing the cutoff thresholds for each algorithm.}
 
 \item{hist}{if you want a histogram to be plotted behind the statistics, 
-select a method here. Available methods are "sturges", "fd", or "scott"
-(default) as documented in \code{\link[graphics]{hist}}. If you don't want
+select a method here. Available methods are "sturges", "fd", or "scott" 
+(default) as documented in \code{\link[graphics]{hist}}. If you don't want 
 to plot the histogram, set \code{hist = NULL}.}
 
 \item{...}{extra parameters passed on to the distance function.}
 }
 \value{
-a list of results from mlg.filter from the three algorithms.
+a list of results from mlg.filter from the three
+  algorithms. (returns invisibly if \code{plot = TRUE})
 }
 \description{
 This function is a wrapper to mlg.filter. It will calculate all of the stats 
@@ -50,21 +53,27 @@ This function originally appeared in
 \examples{
 \dontrun{
 data(Pinf)
-filter_stats(Pinf, distance = diss.dist, percent = TRUE, plot = TRUE)
+pinfreps <- fix_replen(Pinf, c(2, 2, 6, 2, 2, 2, 2, 2, 3, 3, 2))
+filter_stats(Pinf, distance = bruvo.dist, replen = pinfreps, plot = TRUE)
 }
 }
 \author{
 Zhian N. Kamvar, Jonah C. Brooks
 }
 \references{
-ZN Kamvar, JC Brooks, and NJ Grünwald. 2015. Supplementary
-Material for Frontiers Plant Genetics and Genomics 'Novel R tools for
-analysis of genome-wide population genetic data with emphasis on clonality'.
-DOI: \href{http://dx.doi.org/10.5281/zenodo.17424}{10.5281/zenodo.17424}
-
-Kamvar ZN, Brooks JC and Grünwald NJ (2015) Novel R tools for analysis of 
-genome-wide population genetic data with emphasis on clonality. Front. Genet.
-6:208. doi:
-\href{http://dx.doi.org/10.3389/fgene.2015.00208}{10.3389/fgene.2015.00208}
+ZN Kamvar, JC Brooks, and NJ Grünwald. 2015. Supplementary 
+  Material for Frontiers Plant Genetics and Genomics 'Novel R tools for 
+  analysis of genome-wide population genetic data with emphasis on
+  clonality'. DOI:
+  \href{http://dx.doi.org/10.5281/zenodo.17424}{10.5281/zenodo.17424}
+  
+  Kamvar ZN, Brooks JC and Grünwald NJ (2015) Novel R tools for analysis of 
+  genome-wide population genetic data with emphasis on clonality. Front.
+  Genet. 6:208. doi: 
+  \href{http://dx.doi.org/10.3389/fgene.2015.00208}{10.3389/fgene.2015.00208}
+}
+\seealso{
+\code{\link{mlg.filter}} \code{\link{cutoff_predictor}} 
+  \code{\link{bitwise.dist}} \code{\link{diss.dist}}
 }
 

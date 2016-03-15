@@ -29,10 +29,19 @@ This function originally appeared in
 }
 \examples{
 \dontrun{
+
 data(Pinf)
-pthresh <- mlg.filter(Pinf, distance = diss.dist, percent = TRUE, 
-                      threshold = 1.1, stats = "THRESH")
-cutoff_predictor(pthresh)
+pinfreps <- fix_replen(Pinf, c(2, 2, 6, 2, 2, 2, 2, 2, 3, 3, 2))
+pthresh  <- filter_stats(Pinf, distance = bruvo.dist, replen = pinfreps, 
+                         plot = TRUE, stats = "THRESHOLD")
+
+# prediction for farthest neighbor
+cutoff_predictor(pthresh$farthest)
+
+# prediction for all algorithms
+p <- sapply(pthresh, cutoff_predictor)
+abline(v = p)
+
 }
 }
 \author{
@@ -48,5 +57,8 @@ Kamvar ZN, Brooks JC and Grünwald NJ (2015) Novel R tools for analysis of
 genome-wide population genetic data with emphasis on clonality. Front. Genet.
 6:208. doi:
 \href{http://dx.doi.org/10.3389/fgene.2015.00208}{10.3389/fgene.2015.00208}
+}
+\seealso{
+\code{\link{filter_stats}} \code{\link{mlg.filter}}
 }
 
