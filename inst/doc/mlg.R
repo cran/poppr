@@ -77,21 +77,22 @@ raw_dist <- function(x){
 plot.phylo(upgma(xdis))
 
 ## ------------------------------------------------------------------------
-mlg.filter(x, distance = xdis, threshold = 1)
+x # We have 7 MLGs before filtering
+mlg.filter(x, distance = xdis) <- 1 + .Machine$double.eps^0.5
+x # Now we have 5 MLGs
+mll(x) <- "original" # We'll reset to the naive definition
+
+## ------------------------------------------------------------------------
+mll(x, "original")
+mlg.filter(x, distance = xdis, threshold = 1, stats = c("mlg", "thresholds"))
 
 ## ------------------------------------------------------------------------
 (e <- .Machine$double.eps^0.5) # A very tiny number
-mlg.filter(x, distance = xdis, threshold = 1 + e)
+mlg.filter(x, distance = xdis, threshold = 1 + e, stats = c("mlg", "thresholds"))
 
 ## ------------------------------------------------------------------------
-# Threshold of 1
-set.seed(9001)
-g1 <- poppr.msn(x, xdis, threshold = 1, include.ties = TRUE, 
-                vertex.label.color = "firebrick", vertex.label.font = 2)
-# Threshold of 1 + e
-set.seed(9001)
-g2 <- poppr.msn(x, xdis, threshold = 1 + e, include.ties = TRUE, 
-                vertex.label.color = "firebrick", vertex.label.font = 2)
+mlg.filter(x, distance = xdis, threshold = 0, stats = c("mlg", "thresholds"))
+mll(x, "original")
 
 ## ------------------------------------------------------------------------
 x
@@ -257,10 +258,11 @@ myCF <- function(x){
 
 ## ---- eval = FALSE-------------------------------------------------------
 #  # Repeat lengths are necessary
-#  reps <- c(CHMFc4 = 7, CHMFc5 = 2, CHMFc12 = 4,
-#            SEA = 4, SED = 4, SEE = 2, SEG = 6,
-#            SEI = 3, SEL = 4, SEN = 2,
-#            SEP = 4, SEQ = 2, SER = 4)
+#  reps <- fix_replen(monpop,
+#                     c(CHMFc4 = 7, CHMFc5 = 2, CHMFc12 = 4,
+#                       SEA = 4, SED = 4, SEE = 2, SEG = 6,
+#                       SEI = 3, SEL = 4, SEN = 2,
+#                       SEP = 4, SEQ = 2, SER = 4))
 #  
 #  # Adding a little bit, so the threshold is included.
 #  e <- .Machine$double.eps^0.5
@@ -353,15 +355,21 @@ nmll(monpop, "contracted")
 mll(monpop) <- "contracted"
 
 ## ------------------------------------------------------------------------
-mcc <- clonecorrect(monpop, strata = NA)
-sum(dist(mcc))
+monpop %>% 
+  clonecorrect(strata = NA) %>%  # 1. clone correct whole data set
+  dist() %>%                     # 2. calculate distance
+  sum()                          # 3. take the sum of the distance
 
 ## ------------------------------------------------------------------------
 set.seed(999)
-mcc1 <- clonecorrect(monpop[sample(nInd(monpop))], strata = NA)
-sum(dist(mcc1))
+monpop[sample(nInd(monpop))] %>% # 1. shuffle samples
+  clonecorrect(strata = NA) %>%  # 2. clone correct whole data set
+  dist() %>%                     # 3. calculate distance
+  sum()                          # 4. take the sum of the distance
 
 set.seed(1000)
-mcc2 <- clonecorrect(monpop[sample(nInd(monpop))], strata = NA)
-sum(dist(mcc2))
+monpop[sample(nInd(monpop))] %>% # 1. shuffle samples
+  clonecorrect(strata = NA) %>%  # 2. clone correct whole data set
+  dist() %>%                     # 3. calculate distance
+  sum()                          # 4. take the sum of the distance
 

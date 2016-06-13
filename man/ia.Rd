@@ -90,11 +90,11 @@ Calculate the Index of Association and Standardized Index of Association.
 Obtain p-values from one-sided permutation tests.
 }
 \details{
-The function \code{ia} will calculate this over the whole data set while
-\code{pair.ia} will calculate the index pairwise per locus.
+The function \code{ia} will calculate the index of association over all loci in the data set while
+\code{pair.ia} will calculate the index in a pairwise manner among all loci.
 
 The index of association was originally developed by A.H.D. Brown 
-  analyzing population structure of wheat (Brown, 1980). It has been widely 
+  analyzing population structure of wild barley (Brown, 1980). It has been widely 
   used as a tool to detect clonal reproduction within populations . 
   Populations whose members are undergoing sexual reproduction, whether it be
   selfing or out-crossing, will produce gametes via meiosis, and thus have a 
@@ -108,7 +108,7 @@ The index of association was originally developed by A.H.D. Brown
   variances over each locus . You can also think of it as the observed 
   variance over the expected variance. If they  are the same, then the index 
   is zero after subtracting one (from Maynard-Smith, 1993): \deqn{I_A = 
-  \frac{V_O}{V_E}-1}{Ia = Vo/Ve} Since the distance is more or less a binary 
+  \frac{V_O}{V_E}-1}{Ia = (Vo/Ve) - 1} Since the distance is more or less a binary 
   distance, any sort of marker can be used for this analysis. In the 
   calculation, phase is not considered, and any difference increases the 
   distance between two individuals. Remember that each column represents a 
@@ -173,16 +173,20 @@ plot(res, low = "black", high = "green", index = "Ia")
 
 \dontrun{
 
-# Get the indices back and plot them using base R graphics:
+# Get the indices back and plot the distributions.
 nansamp <- ia(nancycats, sample = 999, valuereturn = TRUE)
-layout(matrix(c(1,1,2,2), 2, 2, byrow = TRUE))
-hist(nansamp$samples$Ia); abline(v = nansamp$index[1])
-hist(nansamp$samples$rbarD); abline(v = nansamp$index[3])
-layout(matrix(c(1,1,1,1), 1, 1))
 
-# You can also view them directly:
 plot(nansamp, index = "Ia")
 plot(nansamp, index = "rbarD")
+
+# You can also adjust the parameters for how large to display the text
+# so that it's easier to export it for publication/presentations.
+library("ggplot2")
+plot(nansamp, labsize = 5, linesize = 2) +
+  theme_bw() +                                      # adding a theme
+  theme(text = element_text(size = rel(5))) +       # changing text size
+  theme(plot.title = element_text(size = rel(4))) + # changing title size
+  ggtitle("Index of Association of nancycats")      # adding a new title
 
 # Get the index for each population.
 lapply(seppop(nancycats), ia)

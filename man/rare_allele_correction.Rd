@@ -2,70 +2,60 @@
 % Please edit documentation in R/round_robin.R
 \name{rare_allele_correction}
 \alias{rare_allele_correction}
-\title{Correct minor allele frequencies derived from rraf (INTERNAL)}
-\usage{
-rare_allele_correction(rraf, rrmlg, e = NULL, sum_to_one = FALSE,
-  d = c("sample", "mlg", "rrmlg"), mul = 1, mlg = NULL, pop = NULL,
-  locfac = NULL)
-}
+\title{Correcting rare allele frequencies}
 \arguments{
-\item{rraf}{\emph{internal} a list or matrix produced from \code{\link{rraf}}
-(with uncorrected MAF)}
-
-\item{rrmlg}{\emph{internal} a matrix containing multilocus genotypes per 
-locus derived from \code{\link{rrmlg}}}
-
 \item{e}{a numeric epsilon value to use for all missing allele frequencies.}
+
+\item{d}{the unit by which to take the reciprocal. \code{div = "sample"} will
+be 1/(n samples), \code{d = "mlg"} will be 1/(n mlg), and \code{d = 
+"rrmlg"} will be 1/(n mlg at that locus). This is overridden by \code{e}.}
+
+\item{mul}{a multiplier for div. Default is \code{mul = 1}. This parameter 
+is overridden by \code{e}}
 
 \item{sum_to_one}{when \code{TRUE}, the original frequencies will be reduced 
 so that all allele frequencies will sum to one. \strong{Default: 
 \code{FALSE}}}
-
-\item{d}{the unit by which to take the reciprocal. \code{div = "sample"} will
-be 1/(n samples), \code{div = "mlg"} will be 1/(n mlg), and \code{div = 
-"rrmlg"} will be 1/(n mlg at that locus). This is overridden by \code{e}.}
-
-\item{mul}{a multiplier for div. Default is \code{mult = 1}. This parameter
-is overridden by \code{e}}
-
-\item{mlg}{\emph{internal} the number of MLGs in the sample. Only required if
-\code{d = "mlg"}.}
-
-\item{pop}{\emph{internal} a vector of factors that define the population 
-definition for each observation in \code{rrmlg}. This must be supplied if 
-\code{rraf} is a matrix.}
-
-\item{locfac}{\emph{internal} a vector of factors that define the columns 
-belonging to the loci.}
-}
-\value{
-a matrix or vector the same type as rraf
 }
 \description{
-\strong{This is an internal function. The documentation is for use with 
-\code{\link{rraf}}, \code{\link{pgen}}, and \code{\link{psex}}. Do not 
-attempt to use this function directly.} Minor alleles are often lost when
-calculating allele frequencies from a round-robin approach, resulting in
-zero-valued allele frequencies (Arnaud-Haond et al. 2007, Parks and Werth
-1993). This can be problematic when calculating values for \code{\link{pgen}}
-and \code{\link{psex}}. This function gives options for giving a value to
-these zero-valued frequencies.
+The following is a set of arguments for use in \code{\link{rraf}}, 
+\code{\link{pgen}}, and \code{\link{psex}} to correct rare allele frequencies
+that were lost in estimating round-robin allele frequencies.
 }
 \details{
-Arguments of interest to the user are: 
-\itemize{
- \item \strong{e}
- \item \strong{sum_to_one}
- \item \strong{d}
- \item \strong{m}
-}
-By default (\code{d = "sample", e = NULL, sum_to_one = FALSE, mul = 1}), this
-will add 1/(n samples) to all zero-value alleles. The basic formula is
-\strong{1/(d * m)} unless \strong{e} is specified. If \code{sum_to_one =
-TRUE}, then the frequencies will be scaled as x/sum(x) AFTER correction,
-indicating that the allele frequencies will be reduced. See the examples for
-details. The general pattern of correction is that the value of the MAF will
+By default (\code{d = "sample", e = NULL, sum_to_one = FALSE, mul =
+1}), this will add 1/(n samples) to all zero-value alleles. The basic formula
+is \strong{1/(d * m)} unless \strong{e} is specified. If \code{sum_to_one = 
+TRUE}, then the frequencies will be scaled as x/sum(x) AFTER correction, 
+indicating that the allele frequencies will be reduced. See the examples for 
+details. The general pattern of correction is that the value of the MAF will 
 be \emph{rrmlg > mlg > sample}
+}
+\section{Motivation}{
+
+
+When \link[=rraf]{calculating allele frequencies from a round-robin
+approach}, rare alleles are often lost resulting in zero-valued allele
+frequencies (Arnaud-Haond et al. 2007, Parks and Werth 1993). This can be
+problematic when calculating values for \code{\link{pgen}} and
+\code{\link{psex}} because frequencies of zero will result in undefined
+values for samples that contain those rare alleles. The solution to this
+problem is to give an estimate for the frequency of those rare alleles, but
+the question of HOW to do that arises. These arguments provide a way to
+define how rare alleles are to be estimated/corrected.
+}
+
+\section{Using these arguments}{
+
+
+These arguments are for use in the functions \code{\link{rraf}}, 
+\code{\link{pgen}}, and \code{\link{psex}}. They will replace the dots (...) 
+that appear at the end of the function call. For example, if you want to set 
+the minor allele frequencies to a specific value (let's say 0.001),
+regardless of locus, you can insert \code{e = 0.001} along with any other 
+arguments (note, position is not specific): \preformatted{
+pgen(my_data, e = 0.001, log = FALSE) 
+psex(my_data, method = "multiple", e = 0.001)}
 }
 \examples{
 \dontrun{
@@ -111,7 +101,6 @@ rraf(Pram, by_pop = TRUE, d = "rrmlg", mul = 1/2)
 rraf(Pram, by_pop = TRUE, e = 0.01)
 
 }
-
 }
 \author{
 Zhian N. Kamvar

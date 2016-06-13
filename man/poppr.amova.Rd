@@ -48,16 +48,20 @@ to determine genotypes from the distance matrix. It defaults to
 \code{within = TRUE}. Note that the threshold should be the number of
 allowable substitutions if you don't supply a distance matrix.}
 
-\item{threshold}{the desired minimum distance between distinct genotypes. 
-Defaults to 0, which will only merge identical genotypes}
+\item{threshold}{a number indicating the minimum distance two MLGs must be
+separated by to be considered different. Defaults to 0, which will reflect
+the original (naive) MLG definition.}
 
-\item{algorithm}{determines the type of clustering to be done. (default) 
-"farthest_neighbor" merges clusters based on the maximum distance between 
-points in either cluster. This is the strictest of the three. 
-"nearest_neighbor" merges clusters based on the minimum distance between 
-points in either cluster. This is the loosest of the three. 
-"average_neighbor" merges clusters based on the average distance between 
-every pair of points between clusters.}
+\item{algorithm}{determines the type of clustering to be done. 
+\describe{
+  \item{"farthest_neighbor"}{\emph{ (default) }merges clusters based on the 
+  maximum distance between points in either cluster. This is the strictest of
+  the three.}
+  \item{"nearest_neighbor"}{ merges clusters based on the minimum distance
+  between points in either cluster. This is the loosest of the three.}
+  \item{"average_neighbor"}{ merges clusters based on the average distance
+  between every pair of points between clusters.}
+}}
 
 \item{missing}{specify method of correcting for missing data utilizing
 options given in the function \code{\link{missingno}}. Default is

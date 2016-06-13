@@ -125,12 +125,8 @@ bitwise.dist <- function(x, percent = TRUE, mat = FALSE, missing_match = TRUE,
   # Continue function for genlight objects
 
   # Ensure that every SNPbin object has data for all chromosomes
-  if(ploid == 2){
-    for(i in 1:length(x$gen)){
-      if(length(x$gen[[i]]$snp) == 1){
-        x$gen[[i]]$snp <- append(x$gen[[i]]$snp, list(as.raw(rep(0,length(x$gen[[i]]$snp[[1]])))))
-      }
-    }
+  if (ploid == 2){
+    x <- fix_uneven_diploid(x)
   }
   # Threads must be something that can cast to integer
   if(!is.numeric(threads) && !is.integer(threads) && threads >= 0)
@@ -247,12 +243,8 @@ bitwise.ia <- function(x, missing_match=TRUE, differences_only=FALSE, threads=0)
   # Cast parameters to proper types before passing them to C
   threads <- as.integer(threads)
   # Ensure that every SNPbin object has data for all chromosomes
-  if(ploid == 2){
-    for(i in 1:length(x$gen)){
-      if(length(x$gen[[i]]$snp) == 1){
-        x$gen[[i]]$snp <- append(x$gen[[i]]$snp, list(as.raw(rep(0,length(x$gen[[i]]$snp[[1]])))))
-      }
-    }
+  if (ploid == 2){
+    x  <- fix_uneven_diploid(x)
     IA <- .Call("association_index_diploid", x, missing_match, differences_only, 
                 threads, PACKAGE = "poppr")
   }
@@ -265,11 +257,6 @@ bitwise.ia <- function(x, missing_match=TRUE, differences_only=FALSE, threads=0)
   {
     stop("bitwise.ia only supports haploids and diploids")
   }
-  #TODO: Allow for automated index generation, such as random or window based
-
-  #TODO: Call C function and return
-  
-
   return(IA)
 
 }
@@ -380,7 +367,26 @@ win.ia <- function(x, window = 100L, min.snps = 3L, threads = 1L, quiet = FALSE)
 #'   caution.
 #' 
 #' @param quiet if \code{FALSE}, a progress bar will be printed to the screen.
+#'
+#' @details The index of association is a summary of linkage disequilibrium 
+#'   among many loci. More information on the index of association can be found 
+#'   associated with the funciton \code{\link{ia}}. A value near or at zero
+#'   indicator of linkage equilibrium, whereas values significantly greater than
+#'   zero indicate linkage disequilibrium. However, if the observed variance in 
+#'   distance among individuals is less than the expected, mildly negative 
+#'   values may be observed (as the range of this index is negative one to one).
+#'   This function will call the function \code{\link{bitwise.ia}} for
+#'   \code{reps} times to calculate the index of association over \code{n.snp}
+#'   loci. The standardized index of association ('rbarD') will be calculated
+#'   \code{reps} times. These esitmates of linkage disequilibrium from random
+#'   genomic fractions can then be summarized (e.g., using a histogram) as an
+#'   estimate of genome-wide linkage disequilibrium.
 #'   
+#' 
+#' This function currently only works for objects of class genlight or snpclone
+#' that are of a single ploidy level and that ploidy is either haploid or
+#' diploid.
+#' 
 #'   
 #' @note this will calculate the standardized index of association from Agapow
 #' 2001. See \code{\link{ia}} for details.
@@ -395,6 +401,7 @@ win.ia <- function(x, window = 100L, min.snps = 3L, threads = 1L, quiet = FALSE)
 #'    \code{\link{win.ia}},
 #'    \code{\link{ia}},
 #'    \code{\link{bitwise.dist}}
+#'    \code{\link{bitwise.ia}}
 #' @examples
 #' # with structured snps assuming 1e4 positions
 #' set.seed(999)

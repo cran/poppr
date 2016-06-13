@@ -70,21 +70,18 @@
 #'   
 #'   \tabular{ll}{
 #'     \strong{Vignette}              \tab \strong{command}\cr
-#'     Migration from poppr version 1 \tab \code{vignette("how_to_migrate", "poppr")}\cr
 #'     Data import and manipulation   \tab \code{vignette("poppr_manual", "poppr")}\cr
 #'     Algorithms and Equations      \tab \code{vignette("algo", "poppr")}\cr
 #'     Multilocus Genotype Analysis   \tab \code{vignette("mlg", "poppr")}  
 #'   }
 #'   
-#'   Important notes on the changes from poppr version 1 to poppr version 2 are
-#'   in \emph{Migration from poppr version 1}, essential functions for importing
-#'   and manipulating data are detailed within the \emph{Data import and 
-#'   manipulation} vignette, details on algorithms used in \pkg{poppr} are
-#'   within the \emph{Algorithms and equations} vignette, and details for
-#'   working with multilocus genotypes are in \emph{Multilocus Genotype
-#'   Analysis}. Examples of analyses are available in a primer written by 
-#'   Niklaus J. Grünwald, Zhian N. Kamvar, and Sydney E. Everhart at 
-#'   \url{http://grunwaldlab.github.io/Population_Genetics_in_R}.}
+#'   Essential functions for importing and manipulating data are detailed within
+#'   the \emph{Data import and manipulation} vignette, details on algorithms
+#'   used in \pkg{poppr} are within the \emph{Algorithms and equations}
+#'   vignette, and details for working with multilocus genotypes are in
+#'   \emph{Multilocus Genotype Analysis}. Examples of analyses are available in
+#'   a primer written by Niklaus J. Grünwald, Zhian N. Kamvar, and Sydney E.
+#'   Everhart at \url{http://grunwaldlab.github.io/Population_Genetics_in_R}.}
 #'   
 #'   \subsection{Getting help}{ If you have a specific question or issue with 
 #'   \pkg{poppr}, feel free to contribute to the google group at 
@@ -93,20 +90,6 @@
 #'   \url{https://github.com/grunwaldlab/poppr/issues}. Otherwise, leave a
 #'   message on the groups. Personal emails are highly discouraged as they do 
 #'   not allow others to learn.}
-#'   
-#' @section A note about version 2:
-#'   \pkg{Poppr} has recently moved to version 2 partially because
-#'   \pkg{adegenet} has also moved to version 2, and partially because we
-#'   needed to change the way a few things were done. Major changes that have
-#'   affected both packages: the main data structure in \pkg{adegenet}, the
-#'   \code{\linkS4class{genind}} object, has changed drastically and reduced in
-#'   size. You must convert your data if you want to use the new functionality.
-#'   See the vignette "Migration from poppr version 1" by typing
-#'   \code{vignette("how_to_migrate", "poppr")} for more details on
-#'   major changes and how to deal with them.
-#'   
-#'   Many new features in \pkg{poppr} are described in Kamvar, Brooks, and
-#'   Grünwald (2015), linked below.
 #'   
 #' @section Functions in \pkg{poppr}:
 #' 
@@ -138,7 +121,7 @@
 #' \item \code{\link{informloci}} (m) - Detects and removes phylogenetically uninformative loci
 #' \item \code{\link{popsub}} (m | s) - Subsets genind objects by population
 #' \item \code{\link{shufflepop}} (m) - Shuffles genotypes at each locus using four different shuffling algorithms
-#' \item \code{\link{recode_polyploids}} (m|x) - Recodes polyploid data sets with missing alleles imported as "0"
+#' \item \code{\link{recode_polyploids}} (m | x) - Recodes polyploid data sets with missing alleles imported as "0"
 #' }
 #' @section Genetic distances:
 #' \itemize{
@@ -193,6 +176,7 @@
 #' \item \code{\link{rraf}} (m) - Round-robin allele frequency estimates.
 #' \item \code{\link{pgen}} (m) - Probability of genotypes.
 #' \item \code{\link{psex}} (m) - Probability of observing a genotype more than once.
+#' \item \code{\link{incomp}} (m) - Check data for incomparable samples.
 #' }
 #' }
 #' @section Visualization:
@@ -220,8 +204,8 @@
 #' ramorum} (Kamvar et. al., 2015; Goss et. al., 2009)
 #' }
 #' 
-#' @author Zhian N. Kamvar, Jonah C. Brooks, Javier F. Tabima, Stacy
-#'   Krueger-Hadfield, Erik Sotka, Niklaus J. Grünwald
+#' @author Zhian N. Kamvar, Jonah C. Brooks, Sydney E. Everhart, Javier F. 
+#'   Tabima, Stacy Krueger-Hadfield, Erik Sotka, Niklaus J. Grünwald
 #' 
 #' Maintainer: Zhian N. Kamvar
 #' 

@@ -65,6 +65,7 @@
 #'   select a method here. Available methods are "sturges", "fd", or "scott" 
 #'   (default) as documented in \code{\link[graphics]{hist}}. If you don't want 
 #'   to plot the histogram, set \code{hist = NULL}.
+#' @param threads the number of threads to use. Passed on to \code{\link{mlg.filter}}.
 #' @param ... extra parameters passed on to the distance function.
 #'   
 #' @return a list of results from mlg.filter from the three
@@ -87,16 +88,15 @@
 #'   
 #' @author Zhian N. Kamvar, Jonah C. Brooks
 #' @examples
-#' \dontrun{
 #' data(Pinf)
 #' pinfreps <- fix_replen(Pinf, c(2, 2, 6, 2, 2, 2, 2, 2, 3, 3, 2))
-#' filter_stats(Pinf, distance = bruvo.dist, replen = pinfreps, plot = TRUE)
-#' }
+#' filter_stats(Pinf, distance = bruvo.dist, replen = pinfreps, plot = TRUE, threads = 1L)
 #==============================================================================#
-filter_stats <- function(x, distance = bitwise.dist, 
+filter_stats <- function(x, distance = bitwise.dist,
                          threshold = 1e6 + .Machine$double.eps^0.5, 
                          stats = "All", missing = "ignore", plot = FALSE, 
-                         cols = NULL, nclone = NULL, hist = "Scott", ...){
+                         cols = NULL, nclone = NULL, hist = "Scott", 
+                         threads = 0L, ...){
   if (!inherits(distance, "dist")){
     DIST <- match.fun(distance)
     if (inherits(x, "genind")){
@@ -107,11 +107,11 @@ filter_stats <- function(x, distance = bitwise.dist,
     distmat <- distance
   }
   f <- mlg.filter(x, threshold, missing, algorithm = "f", distance = distmat, 
-                  stats = stats, ...)
+                  stats = stats, threads = threads, ...)
   a <- mlg.filter(x, threshold, missing, algorithm = "a", distance = distmat, 
-                  stats = stats, ...)
+                  stats = stats, threads = threads, ...)
   n <- mlg.filter(x, threshold, missing, algorithm = "n", distance = distmat, 
-                  stats = stats, ...)
+                  stats = stats, threads = threads, ...)
   fanlist <- list(farthest = f, average = a, nearest = n)
   if (stats == "All"){
     if (plot){
@@ -152,21 +152,18 @@ filter_stats <- function(x, distance = bitwise.dist,
 #' 
 #' @author Zhian N. Kamvar
 #' @examples
-#' \dontrun{
 #' 
 #' data(Pinf)
 #' pinfreps <- fix_replen(Pinf, c(2, 2, 6, 2, 2, 2, 2, 2, 3, 3, 2))
 #' pthresh  <- filter_stats(Pinf, distance = bruvo.dist, replen = pinfreps, 
-#'                          plot = TRUE, stats = "THRESHOLD")
+#'                          plot = TRUE, stats = "THRESHOLD", threads = 1L)
 #' 
 #' # prediction for farthest neighbor
 #' cutoff_predictor(pthresh$farthest)
 #' 
 #' # prediction for all algorithms
-#' p <- sapply(pthresh, cutoff_predictor)
-#' abline(v = p)
+#' sapply(pthresh, cutoff_predictor)
 #' 
-#' }
 #==============================================================================#
 cutoff_predictor <- function(thresholds, fraction = 0.5){
   frac    <- 1:round(length(thresholds)*fraction)
@@ -206,7 +203,7 @@ cutoff_predictor <- function(thresholds, fraction = 0.5){
 #==============================================================================#
 plot_filter_stats <- function(x, fstats, distmat, cols = NULL, nclone = NULL, breaks = NULL){
   upper <- round(max(distmat), digits = 1)
-  ylims <- c(ifelse(is.genind(x), mlg(x, quiet = TRUE), nInd(x)), 1)
+  ylims <- c(ifelse(is.genind(x), suppressWarnings(nmll(x, "original")), nInd(x)), 1)
   if (!is.null(breaks)){
     graphics::hist(distmat, breaks = breaks, xlab = "", ylab = "", axes = FALSE,
                    xlim = c(0, upper), main = "")

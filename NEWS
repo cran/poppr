@@ -1,3 +1,50 @@
+poppr 2.2.0
+===========
+
+NEW FUNCTIONS
+-----------
+
+* `incomp()` will check your data to see if there are any incomparable samples.
+
+NEW FEATURES
+-----------
+
+* Threshold argument added to `filter_stats()` 
+  (see https://github.com/grunwaldlab/poppr/issues/94) 
+* The pipe operator (`%>%`) is now exported from magrittr to make chaining 
+  commands easier.
+* `mlg.filter()` can now return multiple statistics.
+* The user can now control the size of the labels in the index of association 
+  plots with the labsize and linesize arguments in the plot method.
+* `private_alleles()` gains a drop argument.
+* `recode_polyploids()` can now take haplodiploid data.
+  
+  
+BUG FIX
+-----------
+
+* An issue that caused errors in the `imsn()` code output was fixed
+  (see https://github.com/grunwaldlab/poppr/issues/93)
+* Caught bug where the `mlg.filter()` assignment method was using `nei.dist()`
+  instead of `diss.dist()` when no distance was specified.
+* A bug that resulted in significantly negative values from `bitwise.ia()` with
+  large sample sizes was fixed. Spotted by @knausb
+  (see https://github.com/grunwaldlab/poppr/issues/100)
+* Fixed issue where `plot_filter_stats()` wasn't displaying the full range of 
+  MLGs
+* Color vectors are now correctly parsed when passed to msn functions 
+  (see https://github.com/grunwaldlab/poppr/issues/55) for details. Long color
+  vectors are now accepted, albiet with warning.
+* An issue where `mll.reset()` did not reset non-MLG class objects in the mlg
+  slot was fixed. 
+  
+MISC
+-----------
+
+* Documentation for `mlg.filter()` was clarified and updated with more examples.
+* The vignette "Migration from poppr version 1" has been removed.
+* Previously deprecated `*hierarchy()` functions have been removed.
+
 poppr 2.1.1
 ===========
 

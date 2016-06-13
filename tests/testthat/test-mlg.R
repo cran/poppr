@@ -96,7 +96,7 @@ test_that("MLG class can print expected", {
   mll(Pinf) <- "custom"
   expect_output(show(Pinf@mlg), "86 custom mlgs.")
   mll(Pinf) <- "contracted"
-  expect_output(show(Pinf@mlg), "86 contracted mlgs with a cutoff of 0 based on the function nei.dist")
+  expect_output(show(Pinf@mlg), "86 contracted mlgs with a cutoff of 0 based on the function diss.dist")
   mll(Pinf) <- "original"
 })
 
@@ -116,7 +116,7 @@ test_that("mlg.crosspop will work with subsetted genclone objects", {
 
   expect_equal(x <- mlg.crosspop(Athena, quiet = TRUE), expected_output)
   expect_equal(y <- mlg.crosspop(Athena, indexreturn = TRUE), expected_mlgout)
-  expect_warning(z <- mlg.crosspop(Athena, mlgsub = c(14, 2:5)), "The following multilocus genotypes are not defined in this dataset: 2, 3, 4, 5")
+  expect_warning(z <- mlg.crosspop(Athena, mlgsub = c(14, 2:5), quiet = TRUE), "The following multilocus genotypes are not defined in this dataset: 2, 3, 4, 5")
 })
 
 test_that("mlg.crosspop can take sublist and blacklist", {
@@ -271,6 +271,30 @@ test_that("subsetting and resetting MLGs works", {
   expect_equal(comll, pres)
 })
 
+test_that("mll.reset works with non-MLG class slots", {
+  skip_on_cran()
+  Pinf@mlg <- Pinf@mlg[]
+  expect_is(Pinf@mlg, "integer")
+  expect_error(mll.reset(Pinf), "please")
+  Pinf <- mll.reset(Pinf, TRUE)
+  expect_is(Pinf@mlg, "MLG")
+})
+
+test_that("mll.reset will reset filtered MLGs", {
+  skip_on_cran()
+  mlg.filter(Pinf, dist = dist) <- 3
+  Pinf.res <- mll.reset(Pinf, "contracted")
+  expect_lt(lu(mll(Pinf)), lu(mll(Pinf.res)))
+  expect_equal(mll(Pinf, "original"), mll(Pinf.res, "contracted"))
+})
+
+test_that("mll.reset will reset subset genclone with no MLG class", {
+  skip_on_cran()
+  data(monpop)
+  expect_equal(suppressWarnings(monpop %>% nmll()), 264L)
+  expect_equal(suppressWarnings(monpop[loc = 1:2, mlg.reset = TRUE] %>% nmll()), 14L)
+  expect_equal(suppressWarnings(monpop[loc = 1:2] %>% mll.reset(TRUE) %>% nmll()), 14L)
+})
 
 test_that("multilocus genotype filtering functions correctly", {
   skip_on_cran()

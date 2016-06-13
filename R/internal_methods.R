@@ -113,11 +113,11 @@ mll.gen.internal <- function(x, type = NULL){
 # ## none
 #==============================================================================#
 mll.reset.internal <- function(x, value){
-  if (!is(x@mlg, "MLG")){
-    x@mlg <- new("MLG", x@mlg)
-    return(x)
+  if (missing(value)){
+    stop("please specify a value to reset MLGs")
   }
-  if (is.logical(value) && length(value) == 1 && value == TRUE){
+  true_value <- is.logical(value) && length(value) == 1 && value == TRUE
+  if (!is(x@mlg, "MLG") | true_value){
     x@mlg <- new("MLG", mlg.vector(x, reset = TRUE))
     return(x)
   }
@@ -139,9 +139,9 @@ mll.reset.internal <- function(x, value){
   }
   x@mlg@mlg <- new_mlg
   if ("contracted" %in% types){
-    x@mlg@cutoff["contracted"] <- 0
-    x@mlg@distname             <- "nei.dist"
-    x@mlg@distargs             <- list()
+    cutoff(x@mlg)["contracted"] <- 0
+    distname(x@mlg) <- if (inherits(x, "genclone")) "diss.dist" else "bitwise.dist"
+    distargs(x@mlg) <- list()
   }
   return(x)
 }
@@ -220,7 +220,7 @@ mll.levels.internal <- function(x, set = TRUE, value){
 #==============================================================================#
 mlg.filter.internal <- function(gid, threshold = 0.0, missing = "asis", 
                                 memory = FALSE, algorithm = "farthest_neighbor", 
-                                distance = "nei.dist", threads = 0, 
+                                distance = "diss.dist", threads = 0, 
                                 stats = "MLGs", the_call = match.call(), ...){
 
   # This will return a vector indicating the multilocus genotypes after applying
@@ -308,7 +308,7 @@ mlg.filter.internal <- function(gid, threshold = 0.0, missing = "asis",
   } 
     # Stats must be logical
   STATARGS <- c("MLGS", "THRESHOLDS", "DISTANCES", "SIZES", "ALL")
-  stats <- match.arg(toupper(stats), STATARGS)
+  stats <- match.arg(toupper(stats), STATARGS, several.ok = TRUE)
 
   # Cast parameters to proper types before passing them to C
   dis_dim   <- dim(dis)
@@ -338,9 +338,13 @@ mlg.filter.internal <- function(gid, threshold = 0.0, missing = "asis",
   }
   result_list[[3]] <- dists
   names(result_list) <- c("MLGS", "THRESHOLDS", "DISTANCES", "SIZES")
-  if (toupper(stats) == "ALL"){
-    return(result_list)
+  if (length(stats) == 1){
+    if (toupper(stats) == "ALL"){
+      return(result_list)
+    } else {
+      return(result_list[[stats]])
+    } 
   } else {
-    return(result_list[[stats]])
-  } 
+    return(result_list[stats])
+  }
 }

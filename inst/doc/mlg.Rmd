@@ -173,7 +173,7 @@ Now we see that we have 6 multilocus genotypes even though one of them contains
 missing data.
 
 Let's also imagine that we included yet another sample that had a low-frequency
-allele at locus **y**, 2, but had the allele "5" at locus **x**.
+allele at locus **y**, "2", but had the allele "5" at locus **x**.
 
 ```{r}
 grid_new <- rbind(grid_example, 
@@ -211,67 +211,80 @@ raw_dist <- function(x){
 plot.phylo(upgma(xdis))
 ```
 
-Therefore, we might want to consider "new", "mut" and, "C" to be the same MLG.
-In the next section, you will see how to collapse multilocus genotypes by
-genetic distance.
+Therefore, we might want to consider "new", "mut" and, "C" to be the same
+Multilocus Lineage (MLL). In the next section, you will see how to collapse
+multilocus genotypes by genetic distance.
 
 ## Filtered ("contracted")
 
 To remedy the issues with a naïve definition of multilocus genotypes, we can
 utilize genetic distance, which will allow us to collapse multilocus genotypes
 that are under a specific distance threshold. The main function we will use in
-this section is `mlg.filter()`. By default, it will calculate Nei's genetic
-distance `r citep(bib[c("nei1972genetic")])` on the data and then filter based
-off of that matrix. You can also utilize your own supplied distance matrix or
-distance function.
+this section is `mlg.filter()`. It will create a dissimiliarity distance matrix
+from the data and then filter based off of that matrix. You can also utilize
+your own supplied distance matrix or distance function.
 
-### Collapsing
+### Main usage
 
-Let's continue our example by using the euclidean distance of the raw alleles.
-To do the collapsing, we will use the function `mlg.filter()`. 
+To use `mlg.filter()`, you need to define a thresold. This threshold defines the
+minimum distance to consider two genotypes unique, so anything below that will 
+be clustered into the same MLG. In practice, it's used like this (using the data
+and the euclidean distance described above):
 
 ```{r}
-mlg.filter(x, distance = xdis, threshold = 1)
+x # We have 7 MLGs before filtering
+mlg.filter(x, distance = xdis) <- 1 + .Machine$double.eps^0.5
+x # Now we have 5 MLGs
+mll(x) <- "original" # We'll reset to the naive definition
 ```
 
-Notice that we now have the last two MLGs collapsed together into one MLL. 
-Unfortunately, we wanted to collapse three MLGs. What happened?
+Here, we told `mlg.filter()` to set the threshold to 1 plus a very tiny number
+(this will be explained in the next section) based off of the distance matrix
+**xdis**. This is a way to manipulate the object in place. In this section,
+there will be examples of retrieving the MLGs and other statistics from the
+function as well as how to use different distance functions and reset the MLGs.
 
-Remember that the distance between "mut" and "C" was 1. We need to set the 
-threshold above where we want the collapse to happen. In order to do this, we
-should add a tiny number to the threshold:
+### Thresholds
+
+As we saw above, in order to collapse all three new samples into the original 5 
+MLGs, we had to set a threshold of *just above* 1. To show you why, we will use 
+the function to return to us the MLGs it created and the thresholds that were
+passed to cluster MLLs (by using the `stats` argument).
+
+```{r}
+mll(x, "original")
+mlg.filter(x, distance = xdis, threshold = 1, stats = c("mlg", "thresholds"))
+```
+
+In our output, we can see that MLG 5 has collapsed into MLG 3. This occured as 
+soon as our threshold passed 0. Take a look at what happens when we add a very
+small number to 1.
 
 ```{r}
 (e <- .Machine$double.eps^0.5) # A very tiny number
-mlg.filter(x, distance = xdis, threshold = 1 + e)
+mlg.filter(x, distance = xdis, threshold = 1 + e, stats = c("mlg", "thresholds"))
 ```
 
-
-### Minimum spanning networks
-
-Now we have all of our MLGs collapsed together, but perhaps a better way to 
-visualize it would be to use `poppr.msn()`: 
+Now that we have set the threshold to *just above* 1, we have 5 unique MLLs 
+since MLG 3 collapsed into MLG 4. Because of the way clustering happens, it's
+important to point out what happens when you attempt to use a threshold of 0.
 
 ```{r}
-# Threshold of 1
-set.seed(9001)
-g1 <- poppr.msn(x, xdis, threshold = 1, include.ties = TRUE, 
-                vertex.label.color = "firebrick", vertex.label.font = 2)
-# Threshold of 1 + e
-set.seed(9001)
-g2 <- poppr.msn(x, xdis, threshold = 1 + e, include.ties = TRUE, 
-                vertex.label.color = "firebrick", vertex.label.font = 2)
+mlg.filter(x, distance = xdis, threshold = 0, stats = c("mlg", "thresholds"))
+mll(x, "original")
 ```
 
-Notice how the genotypes collapse into a single node. Both `poppr.msn()` and
-`bruvo.msn()` will calculate and plot these minimum spanning networks. 
+Notice that all the MLGs are the same as the originally defined MLGs. Using a
+threshold of zero allows two MLGs separated by zero genetic distance to remain
+mutually unique.
 
 ### Setting the genotypes
 
-If we wanted to reassign our sample genotypes to the collapsed version, all
-we would have to do is use the `mlg.filter()` commands above, but use the `<-` 
-operator to specify the threshold. Note that I will be using `mlg.table()` to show
-the distribution of the multilocus genotypes before and after filtering.
+As demonstrated at the beginning of this section, if we wanted to reassign our
+sample genotypes to the collapsed version, all we would have to do is use the
+`mlg.filter()` commands above, but use the `<-` operator to specify the
+threshold. Note that I will be using `mlg.table()` to show the distribution of
+the multilocus genotypes before and after filtering.
 
 ```{r}
 x
@@ -578,15 +591,19 @@ myCF <- function(x){
 ```
 
 You can use filtered or custom MLGs to compare diversity. Here, I'm filtering
-genotypes in `monpop` that are different by only a single mutational step 
+genotypes in `monpop` that are different by only a single mutational step
 `r citep(bib["Bruvo:2004"])`.
+
+> One mutational step for a single allele in Bruvo's distance is equivalent to
+> 0.5, so a single mutational step for a haploid organism with 13 loci is 0.5/13.
 
 ```{r, eval = FALSE}
 # Repeat lengths are necessary
-reps <- c(CHMFc4 = 7, CHMFc5 = 2, CHMFc12 = 4, 
-          SEA = 4, SED = 4, SEE = 2, SEG = 6,
-          SEI = 3, SEL = 4, SEN = 2, 
-          SEP = 4, SEQ = 2, SER = 4)
+reps <- fix_replen(monpop, 
+                   c(CHMFc4 = 7, CHMFc5 = 2, CHMFc12 = 4, 
+                     SEA = 4, SED = 4, SEE = 2, SEG = 6,
+                     SEI = 3, SEL = 4, SEN = 2, 
+                     SEP = 4, SEQ = 2, SER = 4))
 
 # Adding a little bit, so the threshold is included.
 e <- .Machine$double.eps^0.5
@@ -710,20 +727,26 @@ sum of all pairwise distances between clone-corrected samples (corrected without
 respect to populations):
 
 ```{r}
-mcc <- clonecorrect(monpop, strata = NA)
-sum(dist(mcc))
+monpop %>% 
+  clonecorrect(strata = NA) %>%  # 1. clone correct whole data set
+  dist() %>%                     # 2. calculate distance
+  sum()                          # 3. take the sum of the distance
 ```
 
 Now, what happens when we randomly sample individuals?
 
 ```{r}
 set.seed(999)
-mcc1 <- clonecorrect(monpop[sample(nInd(monpop))], strata = NA)
-sum(dist(mcc1))
+monpop[sample(nInd(monpop))] %>% # 1. shuffle samples
+  clonecorrect(strata = NA) %>%  # 2. clone correct whole data set
+  dist() %>%                     # 3. calculate distance
+  sum()                          # 4. take the sum of the distance
 
 set.seed(1000)
-mcc2 <- clonecorrect(monpop[sample(nInd(monpop))], strata = NA)
-sum(dist(mcc2))
+monpop[sample(nInd(monpop))] %>% # 1. shuffle samples
+  clonecorrect(strata = NA) %>%  # 2. clone correct whole data set
+  dist() %>%                     # 3. calculate distance
+  sum()                          # 4. take the sum of the distance
 ```
 
 Notice how we are getting different results based on the order of samples. This

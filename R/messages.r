@@ -197,12 +197,39 @@ mlg_sub_warning <- function(mlgs){
 #==============================================================================#
 missing_messenger <- function(things, type = c("locus", "loci"), nremoved = 1, 
                               cutoff = 0.05){
-  type <- ifelse(length(things) == 1, type[1], type[2])
-  cutoff <- cutoff*100
-  msg <- paste0("\nFound ", nremoved, " missing values.\n\n",
-                length(things), " ", type, 
-                " contained missing values greater than ", cutoff, "%\n\n",
-                "Removing ", length(things), " ", type, ":\n", 
-                format_char_width(things, width = getOption("width") - 10))
+  type           <- ifelse(length(things) == 1, type[1], type[2])
+  cutoff         <- cutoff*100
+  n_things       <- length(things)
+  things_no_more <- paste(c("Removing", n_things, paste0(type, ":"), 
+                            paste0(things[-n_things], ", "), things[n_things]),
+                          collapse = " ")
+  msg <- paste0("\nFound ", nremoved, " missing values.\n\n", n_things, " ", 
+                type, " contained missing values greater than ", cutoff, "%\n\n", 
+                paste(strwrap(things_no_more), collapse = "\n"))
   message(msg)
+}
+
+uninformative_loci_message <- function(pop, glocivals, alocivals, locivals, 
+                                       min_ind, ind, MAF){
+  glocsum <- sum(!glocivals)
+  alocsum <- sum(!alocivals)
+  locsum  <- sum(!locivals)
+  lnames  <- locNames(pop)
+  cutoff  <- paste(lnames[!glocivals], collapse = ", ")
+  MAFloc  <- paste(lnames[!alocivals], collapse = ", ")
+  fmsg <- paste("Found", locsum, "uninformative", 
+                ifelse(locsum != 1, "loci", "locus"), "\n",
+                "============================")
+  gmsg <- paste(glocsum, 
+                ifelse(glocsum != 1, "loci", "locus"), "found with",
+                "a cutoff of", min_ind, ind, 
+                ifelse(glocsum == 0, "", ":\n"),
+                paste(strwrap(cutoff), collapse = "\n"))
+  amsg <- paste(alocsum, 
+                ifelse(alocsum != 1, "loci", "locus"),
+                "found with MAF <", signif(MAF, 3), 
+                ifelse(alocsum == 0, "", ":\n"),
+                paste(strwrap(MAFloc), collapse = "\n"))
+  msg <- paste("\n", fmsg, "\n", gmsg, "\n", amsg)
+  return(msg)
 }
