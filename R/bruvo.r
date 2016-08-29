@@ -413,64 +413,7 @@ bruvo.boot <- function(pop, replen = 1, add = TRUE, loss = TRUE, sample = 100,
 #' @param loss if \code{TRUE}, genotypes with zero values will be treated under 
 #'   the genome loss model presented in Bruvo et al. 2004.
 #'   
-#' @param mlg.compute if the multilocus genotypes are set to "custom" (see
-#'   \code{\link{mll.custom}} for details) in your genclone object, this will
-#'   specify which mlg level to calculate the nodes from. See details.
-#'   
-#' @param palette a \code{vector} or \code{function} defining the color palette 
-#'   to be used to color the populations on the graph. It defaults to 
-#'   \code{\link{topo.colors}}. See examples for details.
-#'   
-#' @param sublist a \code{vector} of population names or indexes that the user 
-#'   wishes to keep. Default to "ALL".
-#'   
-#' @param blacklist a \code{vector} of population names or indexes that the user
-#'   wishes to discard. Default to \code{NULL}
-#'   
-#' @param vertex.label a \code{vector} of characters to label each vertex. There
-#'   are two defaults: \code{"MLG"} will label the nodes with the multilocus 
-#'   genotype from the original data set and \code{"inds"} will label the nodes 
-#'   with the representative individual names.
-#'   
-#' @param gscale "grey scale". If this is \code{TRUE}, this will scale the color
-#'   of the edges proportional to Bruvo's distance, with the lines becoming 
-#'   darker for more related nodes. See \code{\link{greycurve}} for details.
-#'   
-#' @param glim "grey limit". Two numbers between zero and one. They determine 
-#'   the upper and lower limits for the \code{\link{gray}} function. Default is 
-#'   0 (black) and 0.8 (20\% black). See \code{\link{greycurve}} for details.
-#'   
-#' @param gadj "grey adjust". a positive \code{integer} greater than zero that 
-#'   will serve as the exponent to the edge weight to scale the grey value to 
-#'   represent that weight. See \code{\link{greycurve}} for details.
-#'   
-#' @param gweight "grey weight". an \code{integer}. If it's 1, the grey scale 
-#'   will be weighted to emphasize the differences between closely related 
-#'   nodes. If it is 2, the grey scale will be weighted to emphasize the 
-#'   differences between more distantly related nodes. See 
-#'   \code{\link{greycurve}} for details.
-#'   
-#' @param wscale "width scale". If this is \code{TRUE}, the edge widths will be 
-#'   scaled proportional to Bruvo's distance, with the lines becoming thicker
-#'   for more related nodes.
-#'   
-#' @param showplot logical. If \code{TRUE}, the graph will be plotted. If 
-#'   \code{FALSE}, it will simply be returned.
-#'
-#' @param include.ties logical. If \code{TRUE}, the graph will include all
-#'   edges that were arbitrarily passed over in favor of another edge of equal
-#'   weight. If \code{FALSE}, which is the default, one edge will be arbitrarily 
-#'   selected when two or more edges are tied, resulting in a pure minimum spanning
-#'   network. 
-#'   
-#' @param threshold numeric. If greater than the default value of 0.0, this will
-#'   be passed to \code{\link{mlg.filter}} prior to creating the msn.
-#'
-#' @param clustering.algorithm string. If \code{threshold} is greater than 0, this
-#'   this will also be passed to \code{\link{mlg.filter}} prior to creating the msn.
-#'   For both of these arguments, see \code{\link{mlg.filter}} for more details.
-#'
-#' @param ... any other arguments that could go into plot.igraph
+#' @inheritParams poppr.msn
 #'   
 #' @return \item{graph}{a minimum spanning network with nodes corresponding to 
 #'   MLGs within the data set. Colors of the nodes represent population 
@@ -502,6 +445,19 @@ bruvo.boot <- function(pop, replen = 1, add = TRUE, loss = TRUE, sample = 100,
 #'   clone correction will be done via the computed multilocus genotypes, either
 #'   "original" or "contracted". This is specified in the \code{mlg.compute}
 #'   argument, above.}
+#'   \subsection{contracted multilocus genotypes}{
+#'   If your incoming data set is of the class \code{\linkS4class{genclone}},
+#'   and it contains contracted multilocus genotypes, this function will retain
+#'   that information for creating the minimum spanning network. You can use the
+#'   arguments \code{threshold} and \code{clustering.algorithm} to change the
+#'   threshold or clustering algorithm used in the network. For example, if you
+#'   have a data set that has a threshold of 0.1 and you wish to have a minimum
+#'   spanning network without a threshold, you can simply add 
+#'   \code{threshold = 0.0}, and no clustering will happen. 
+#'   
+#'   The \code{threshold} and \code{clustering.algorithm} arguments can also be
+#'   used to filter un-contracted data sets.
+#'   }
 #'   
 #' @seealso \code{\link{bruvo.dist}}, \code{\link{nancycats}}, 
 #'   \code{\link{plot_poppr_msn}}, \code{\link[igraph]{minimum.spanning.tree}} 
@@ -564,128 +520,74 @@ bruvo.msn <- function (gid, replen = 1, add = TRUE, loss = TRUE,
                        sublist = "All", blacklist = NULL, vertex.label = "MLG", 
                        gscale = TRUE, glim = c(0,0.8), gadj = 3, gweight = 1, 
                        wscale = TRUE, showplot = TRUE, 
-                       include.ties = FALSE, threshold = 0.0, 
-                       clustering.algorithm="farthest_neighbor", ...){
+                       include.ties = FALSE, threshold = NULL, 
+                       clustering.algorithm = NULL, ...){
+  if (!inherits(gid, "genind")){
+    stop("Bruvo's distance only works for microsatellite markers. gid must be a genind/genclone object.")
+  }
   if (!is.genclone(gid)){
     # convert to genclone object
     gid <- as.genclone(gid)  
   }
-  # if (is.null(pop(gid)) | nPop(gid) == 1){
-  #   return(singlepop_msn(gid, vertex.label, add = add, loss = loss, 
-  #                        replen = replen, gscale = gscale, 
-  #                        glim = glim, gadj = gadj, wscale = wscale, 
-  #                        palette = palette))
+  if (!inherits(gid@mlg, "MLG")){
+    gid@mlg <- new("MLG", gid@mlg)
+  }
+  
+  
+  
+  # Handling MLG type -------------------------------------------------------
+  visible_mlg <- visible(gid@mlg)
+  if (visible_mlg == "custom"){
+    mll(gid) <- mlg.compute
+  } else if (visible_mlg == "contracted"){
+    mll(gid) <- "original"
+    if (is.null(threshold)){
+      threshold <- cutoff(gid@mlg)["contracted"]
+    }
+    
+    if (is.null(clustering.algorithm)){
+      clustering.algorithm <- distalgo(gid@mlg)
+    } 
+    
+  }
+  
   gadj <- ifelse(gweight == 1, gadj, -gadj)
 
   if (toupper(sublist[1]) != "ALL" | !is.null(blacklist)){
     gid <- popsub(gid, sublist, blacklist)
   }
-  if (is.null(pop(gid)) | nPop(gid) == 1){
-    return(singlepop_msn(gid, vertex.label, add = add, loss = loss, 
-                         replen = replen, gscale = gscale, mlg.compute = mlg.compute,
-                         glim = glim, gadj = gadj, wscale = wscale, 
-                         palette = palette, include.ties = include.ties,
-                         threshold=threshold, clustering.algorithm=clustering.algorithm, ...))
-  }
-  if (class(gid$mlg) != "MLG"){
-    # Froce gid$mlg to be class MLG
-    gid$mlg <- new("MLG", gid$mlg)
-  }
-  # Obtaining population information for all MLGs
-  classstat <- (is.genclone(gid) | is(gid, "snpclone")) && is(gid@mlg, "MLG")
-  if (classstat){
-    visible <- visible(gid@mlg)
-    mll(gid)  <- mlg.compute
-  }
+
   # Updating the MLG with filtered data
-  if (threshold > 0){
-    filter.stats <- mlg.filter(gid,threshold,distance=bruvo.dist,algorithm=clustering.algorithm,replen=replen,stats="ALL", add = add, loss = loss)
-    # TODO: The following two lines should be a product of mlg.filter
-    visible(gid$mlg) <- "contracted"
-    gid$mlg[] <- filter.stats[[1]]  
-    # Obtaining population information for all MLGs
-    cgid   <- gid[.clonecorrector(gid), ]
-    bclone <- filter.stats[[3]]
-    if (!is.matrix(bclone)) bclone <- as.matrix(bclone)
-    # Fix issue #66
-    rownames(bclone) <- indNames(cgid) -> colnames(bclone)
+  if (!is.null(threshold)){
+    bruvo_args <- list(replen = replen, add = add, loss = loss)
+    filtered   <- filter_at_threshold(gid, 
+                                      threshold, 
+                                      indist = NULL,
+                                      clustering.algorithm,
+                                      bruvo_args = bruvo_args)
+    distmat <- filtered$indist
+    cgid    <- filtered$cgid
+    gid     <- filtered$gid
   } else {
-    cgid <- gid[.clonecorrector(gid), ]
-    bclone <- as.matrix(bruvo.dist(cgid, replen=replen, add = add, loss = loss))
+    cgid    <- gid[.clonecorrector(gid), ]
+    distmat <- as.matrix(bruvo.dist(cgid, replen=replen, add = add, loss = loss))
   }
-  if (is.genclone(gid)){
-    mlgs <- mll(gid)
-    cmlg <- mll(cgid)
-  } else {
-    mlgs <- gid$other$mlg.vec
-    cmlg <- cgid$other$mlg.vec
-  }
-  subs <- sort(unique(mlgs))
-  mlg.cp <- mlg.crosspop(gid, mlgsub = subs, quiet=TRUE)
-  if (is.numeric(mlgs)){
-    names(mlg.cp) <- paste0("MLG.", sort(unique(mlgs)))    
-  }
-
-  
-  # This will determine the size of the nodes based on the number of individuals
-  # in the MLG. Subsetting by the MLG vector of the clone corrected set will
-  # give us the numbers and the population information in the correct order.
-  # Note: rank is used to correctly subset the data
-  mlg.number <- table(mlgs)[rank(cmlg)]
-  mlg.cp     <- mlg.cp[rank(cmlg)]
-  
-  ###### Create a graph #######
-  g   <- graph.adjacency(as.matrix(bclone), weighted = TRUE, mode = "undirected")
-  if (length(cgid@mlg[]) > 1){ 
-    mst <- minimum.spanning.tree(g, algorithm = "prim", weights = E(g)$weight)
-    # Add any relevant edges that were cut from the mst while still being tied for the title of optimal edge
-    if (include.ties){
-      mst <- add_tied_edges(mst, bclone, tolerance = .Machine$double.eps ^ 0.5)
-    }
-  } else {
-    mst <- minimum.spanning.tree(g)
-  }
-
-  if (!is.na(vertex.label[1]) & length(vertex.label) == 1){
-    if (toupper(vertex.label) == "MLG"){
-      if (is.numeric(cmlg) && !classstat){
-        vertex.label <- paste0("MLG.", cmlg)
-      } else if (visible == "custom"){
-        mll(gid) <- visible
-        vertex.label <- correlate_custom_mlgs(gid, mlg.compute)
-      } else {
-        vertex.label <- paste0("MLG.", cmlg)
-      }
-    } else if (toupper(vertex.label) == "INDS"){
-      vertex.label <- indNames(cgid)
-    }
-  }
-  ###### Color schemes #######  
-  # The pallete is determined by what the user types in the argument. It can be 
-  # rainbow, topo.colors, heat.colors ...etc.
-  npop   <- nPop(gid)
-  pnames <- popNames(gid)
-  color  <- palette_parser(palette, npop, pnames)
-  
-  if (length(mll(cgid)) > 1){ 
-    mst <- update_edge_scales(mst, wscale, gscale, glim, gadj)
-  }
-
-  # This creates a list of colors corresponding to populations.
-  mlg.color <- lapply(mlg.cp, function(x) color[pnames %in% names(x)])
-  if (showplot){
-    plot.igraph(mst, edge.width = E(mst)$width, edge.color = E(mst)$color, 
-         vertex.size = mlg.number*3, vertex.shape = "pie", vertex.pie = mlg.cp, 
-         vertex.pie.color = mlg.color, vertex.label = vertex.label, ...)
-    graphics::legend(-1.55, 1, bty = "n", cex = 0.75, legend = pnames, 
-           title = "Populations", fill = color, border = NULL)
-  }
-  V(mst)$size      <- mlg.number
-  V(mst)$shape     <- "pie"
-  V(mst)$pie       <- mlg.cp
-  V(mst)$pie.color <- mlg.color
-  V(mst)$label     <- vertex.label
-  return(list(graph = mst, populations = pnames, colors = color))
+  poppr_msn_list <- msn_constructor(
+    gid = gid,
+    cgid = cgid,
+    palette = palette,
+    indist = distmat,
+    include.ties = include.ties,
+    mlg.compute = mlg.compute,
+    vlab = vertex.label,
+    visible_mlg = visible_mlg,
+    wscale = wscale,
+    gscale = gscale,
+    glim = glim,
+    gadj = gadj,
+    showplot = showplot,
+    ...)
+  return(poppr_msn_list)
 }
 #' Test repeat length consistency.
 #' 

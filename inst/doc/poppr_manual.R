@@ -1,10 +1,11 @@
-## ----echo=FALSE, warning=FALSE-------------------------------------------
-knitr::opts_knit$set(out.format = "latex")
-thm <- knitr::knit_theme$get("acid")
-knitr::knit_theme$set(thm)
-knitr::opts_chunk$set(concordance=TRUE)
-knitr::opts_chunk$set(size = 'small', message = FALSE, warning = FALSE)
-knitr::opts_chunk$set(out.width = '0.5\\linewidth', fig.align = "center", fig.show = 'asis')
+## ---- echo = FALSE, message = FALSE, warning = FALSE---------------------
+knitr::opts_chunk$set(message = FALSE, warning = FALSE, tidy = FALSE)
+knitr::opts_chunk$set(fig.align = "center", fig.show = 'asis')
+knitr::opts_knit$set(eval.after = 'fig.cap')
+library("knitcitations")
+cite_options(citation_format = "pandoc", max.names = 3, style = "html", 
+             hyperlink = "to.doc")
+bib <- read.bibtex("the_bibliography.bib")
 
 ## ----poppr_funk, eval = TRUE, echo = FALSE-------------------------------
 print_command <- function(funk){
@@ -22,14 +23,11 @@ print_command <- function(funk){
   return(as.call(fargs))
 }
 
-## ----migration_vignette, eval = FALSE------------------------------------
-#  vignette("how_to_migrate", package = "poppr")
-
-## ----popprcite, eval = TRUE, size="normalsize"---------------------------
+## ----popprcite, eval = TRUE----------------------------------------------
 citation(package = "poppr")
 
-## ----install, eval=FALSE-------------------------------------------------
-#  install.packages("poppr", dependencies=TRUE)
+## ----install, eval = FALSE-----------------------------------------------
+#  install.packages("poppr", repos = "http://cloud.r-project.org/")
 
 ## ----install_devtools, eval = FALSE--------------------------------------
 #  install.packages("devtools")
@@ -37,25 +35,17 @@ citation(package = "poppr")
 ## ----install_github, eval = FALSE----------------------------------------
 #  devtools::install_github("grunwaldlab/poppr")
 
-## ----install_devel, eval = FALSE-----------------------------------------
-#  devtools::install_github("grunwaldlab/poppr@devel")
-
-## ----install_depend, eval=FALSE, tidy = FALSE----------------------------
-#  pkgs <- c("adegenet", "pegas", "vegan", "ggplot2", "phangorn", "ape",
-#            "igraph", "reshape2", "dplyr", "shiny")
-#  install.packages(pkgs)
-
-## ----install_source, eval=FALSE------------------------------------------
-#  install.packages("/path/to/poppr.tar.gz", type="source", repos=NULL)
-
-## ----echo=FALSE----------------------------------------------------------
-x <- list(files="/path/to/R/poppr/files/rootrot.csv", path="/path/to/R/poppr/files")
+## ----echo = FALSE--------------------------------------------------------
+x <- list(files = "/path/to/R/poppr/files/rootrot.csv", path = "/path/to/R/poppr/files")
 
 ## ----message = TRUE------------------------------------------------------
 library("poppr")
 
 ## ----getfilefunk, eval=FALSE---------------------------------------------
 #  x <- getfile()
+
+## ----getfile-window, out.width = "500px", fig.cap = "A popup window as it appears in OSX (Mountain Lion)", echo = FALSE----
+knitr::include_graphics(path = "getfile.png")
 
 ## ----getfilex------------------------------------------------------------
 x
@@ -83,6 +73,24 @@ popdata
 
 ## ----microsave_message, echo=FALSE------------------------------------------------------
 cat("Extracting the table ... Writing the table to ~/Desktop/microbov.csv ... Done.")
+
+## ----microbov-unmodified, out.width = "700px", fig.cap = paste(mictext), echo = FALSE----
+mictext <- paste(
+  "The first 15 individuals and 4 loci of the microbov data set. The",
+  "first column contains the individual names, the second column contains",
+  "the population names, and each subsequent column represents",
+  "microsatellite genetic data. Highlighted in red is a list of populations",
+  "and their relative sizes."
+  )
+knitr::include_graphics(path = "unmod_dat.png")
+
+## ----microbov-modified, out.width = "700px", fig.cap = paste(mictext), echo = FALSE-----
+mictext <- paste(
+  "The first 15 individuals and 4 loci of the microbov data set. This is the same",
+  "figure as above, however the populations and counts have been removed from the",
+  "header row and the third number in the header has been replaced by 1" 
+  )
+knitr::include_graphics(path = "mod_dat.png")
 
 ## ----read.genalex_command, echo = FALSE, comment = NA, size = 'normalsize'--------------
 funk <- "read.genalex"
@@ -121,17 +129,17 @@ other(nancycats)$xy
 cat("Extracting the table ... Writing the table to ~/Desktop/nancycats_pop_xy.csv ... Done.\n")
 
 ## ----nancy_grow_xy----------------------------------------------------------------------
-nan2 <- nancycats
+nan2           <- nancycats
 other(nan2)$xy <- other(nan2)$xy[pop(nan2), ]
 tail(other(nan2)$xy)
 
-## ----genind2genalex_nancy_grow, eval=FALSE----------------------------------------------
+## ----genind2genalex_nancyind, eval=FALSE------------------------------------------------
 #  genind2genalex(nan2, "~/Desktop/nancycats_inds_xy.csv", geo = TRUE)
 
-## ----genind2genalex_cat3, echo=FALSE----------------------------------------------------
+## ----genind2genalex_cat2ind, echo=FALSE-------------------------------------------------
 cat("Extracting the table ... Writing the table to ~/Desktop/nancycats_inds_xy.csv ... Done.\n")
 
-## ----ex_data_picture, echo = FALSE, fig.width=14, fig.height=4, out.width="7in", out.height = "2in"----
+## ----ex_data_picture, echo = FALSE, fig.width=14, fig.height=4, out.width = "700px"-----
 library("adegenet")
 df <- data.frame(list(locus1=c("101/101", "102/103", "102/102"),
                       locus2=c("201/201", "202/203", "203/204"),
@@ -173,12 +181,6 @@ Aeut
 agc <- as.genclone(Aeut)
 agc
 
-## ----genclone_compare-------------------------------------------------------------------
-c(is.genind(Aeut), is.genclone(Aeut), is.genind(agc), is.genclone(agc))
-
-# Adegenet functions work the same, too
-c(nInd(Aeut), nInd(agc))
-
 ## ----genclone2genind--------------------------------------------------------------------
 genclone2genind(agc)
 
@@ -188,7 +190,7 @@ Pinf
 ptab <- info_table(Pinf, type = "ploidy", plot = TRUE)
 
 ## ----pinf_show--------------------------------------------------------------------------
-tail(tab(Pinf[loc = locNames(Pinf)[9:10]]))
+Pinf[loc = locNames(Pinf)[9:10]] %>% tab() %>% tail()
 
 ## ----pinf_show_df-----------------------------------------------------------------------
 Pinfdf <- genind2df(Pinf, sep = "/")
@@ -197,20 +199,23 @@ tail(Pinfdf[10:11])
 ## ----pinf_recode------------------------------------------------------------------------
 Pinf_rc <- recode_polyploids(Pinf, newploidy = TRUE)
 Pinf_rc # Notice that the new ploidy is accounted for.
-tail(tab(Pinf_rc[loc = locNames(Pinf_rc)[9:10]]))
+Pinf_rc[loc = locNames(Pinf_rc)[9:10]] %>% tab() %>% tail
 
 ## ----pinf_recode_df---------------------------------------------------------------------
 Pinfrcdf <- genind2df(Pinf_rc, sep = "/")
 tail(Pinfrcdf[10:11])
 
 ## ----pinf_rerecode----------------------------------------------------------------------
-tail(tab(recode_polyploids(Pinf_rc[loc = locNames(Pinf_rc)[9:10]], addzero = TRUE)))
+Pinf_rc[loc = locNames(Pinf_rc)[9:10]] %>%
+  recode_polyploids(addzero = TRUE) %>%
+  tab() %>%
+  tail()
 
 ## ----missingo_command, echo = FALSE, comment = NA, size = 'normalsize'------------------
 funk <- "missingno"
 print_command(funk)
 
-## ----initializing_poppr, out.width=".8\\linewidth", fig.height = 6, fig.width = 10------
+## ----initializing_poppr, fig.height = 6, fig.width = 10, out.width = "700px"------------
 library("poppr")
 data(nancycats)
 info_table(nancycats, plot = TRUE)
@@ -232,7 +237,7 @@ tab(nangeno)[1:5, 8:13]
 nInd(nangeno)     # Individuals
 locNames(nangeno) # Names of the loci
 
-## ----popsub_command, echo = FALSE, comment = NA, size = 'normalsize'--------------------
+## ----popsub_command, echo = FALSE, comment = NA-----------------------------------------
 funk <- "popsub"
 print_command(funk)
 
@@ -318,10 +323,8 @@ print_command(funk)
 #  H.five <- informloci(H3N2, cutoff = 0.05)
 
 ## ----inform.H3N2.2, echo = FALSE, message = TRUE----------------------------------------
-#res <- c(157,177,233,243,262,267,280,303,313,327,357,382,384,399,412,418,424,425,429,433,451,470,529,546,555,557,564,576,592,595,597,602,612,627,642,647,648,654,658,663,667,681,717,806,824,837,882)
-# cat("cutoff value: 5 percent ( 95 individuals ).\n","47 uninfomative loci found:", res, fill = 80)
 msg <- readLines("msg.txt")
-for (i in msg) message(i)
+message(paste(msg, collapse = "\n"))
 
 ## ----inform.nancy, message = TRUE-------------------------------------------------------
 data(nancycats)
@@ -385,7 +388,7 @@ print_command(funk)
 v.tab <- mlg.table(H3N2, plot = FALSE)
 v.tab[1:10, 1:10] # Showing the first 10 columns and rows of the table.
 
-## ----mlgbarplot, results = 'hide', out.width = "0.8\\linewidth"-------------------------
+## ----mlgbarplot, results = 'hide', fig.cap = "An example of a bar-chart produced by `mlg.table`. Note that this data set would produce several such charts but only the chart for Norway is shown here."----
 mlg.table(H3N2, sublist = "Norway", plot = TRUE)
 
 ## ----mlgrare1_dummy, eval = FALSE-------------------------------------------------------
@@ -394,24 +397,13 @@ mlg.table(H3N2, sublist = "Norway", plot = TRUE)
 
 ## ----mlgrare1, echo = FALSE-------------------------------------------------------------
 setPop(H3N2) <- ~year
-res <- c("", " # Total number of genotypes:  1903 ", "", " # Population sample sizes:  ",
-         "2002 2003 2004 2005 2006 ", " 158  415  399  469  462 ", "",
-         " # Number of alleles per locus:  ", "  6  17  39  42  45  51  60  72  73  90 108 123 129 134 145 148 149 157 168 171 177 225 ",
-         "  3   3   4   2   4   2   3   2   4   3   4   2   4   3   2   2   3   3   2   2   3   3 ",
-         "233 243 247 262 267 280 303 313 317 327 334 345 351 357 376 382 384 391 396 399 412 418 ",
-         "  3   2   2   2   2   2   2   2   2   2   2   4   4   3   3   3   4   2   2   2   4   3 ",
-         "424 425 429 430 433 434 435 451 463 464 468 470 476 483 490 517 529 546 555 557 561 562 ",
-         "  2   3   4   2   3   2   3   2   2   2   4   2   2   2   2   2   2   2   4   4   4   3 ",
-         "564 566 576 577 578 582 592 594 595 597 600 602 604 612 627 642 647 648 654 658 663 664 ",
-         "  3   2   3   4   3   2   3   3   3   3   2   3   2   4   2   3   2   2   3   3   3   3 ",
-         "666 667 673 674 676 679 681 685 717 763 806 807 824 837 882 897 906 910 915 929 933 936 ",
-         "  2   2   2   2   3   2   3   2   3   2   3   2   3   3   2   2   2   3   2   2   2   3 ",
-         "939 940 957 961 962 963 966 967 969 973 975 977 978 979 980 ",
-         "  3   3   2   2   3   3   3   3   4   2   3   3   4   3   2 ",
-         "", " # Number of alleles per population:  ", "2002 2003 2004 2005 2006 ",
-         " 203  255  232  262  240 ", "", " # Percentage of missing data:  ",
-         "[1] 2.363426", "", " # Observed heterozygosity:  ", "[1] 0",
-         "", " # Expected heterozygosity:  ", "[1] 0")
+res <- "
+// Number of individuals: 1903
+// Group sizes: 158 415 399 469 462
+// Number of alleles per locus: 3 3 4 2 4 2 3 2 4 3 4 2 4 3 2 2 3 3 2 2 3 3 3 2 2 2 2 2 2 2 2 2 2 4 4 3 3 3 4 2 2 2 4 3 2 3 4 2 3 2 3 2 2 2 4 2 2 2 2 2 2 2 4 4 4 3 3 2 3 4 3 2 3 3 3 3 2 3 2 4 2 3 2 2 3 3 3 3 2 2 2 2 3 2 3 2 3 2 3 2 3 3 2 2 2 3 2 2 2 3 3 3 2 2 3 3 3 3 4 2 3 3 4 3 2
+// Number of alleles per group: 203 255 232 262 240
+// Percentage of missing data: 2.36 %
+// Observed heterozygosity: 0"
 cat(res, sep = "\n")
 
 ## ----mlgrare2, eval=FALSE, tidy=FALSE---------------------------------------------------
@@ -420,10 +412,11 @@ cat(res, sep = "\n")
 #  rarecurve(H.year, ylab="Number of expected MLGs", sample=min(rowSums(H.year)),
 #            border = NA, fill = NA, font = 2, cex = 1, col = "blue")
 
-## ----mlgrareplot, echo=FALSE, results='hide'--------------------------------------------
+## ----mlgrareplot, echo=FALSE, results='hide', fig.cap = "An example of a rarefaction curve produced using a MLG table."----
 # library("vegan")
 H.year <- mlg.table(H3N2, plot = FALSE)
-vegan::rarecurve(H.year, ylab="Number of expected MLGs", sample=min(rowSums(H.year)), border = NA, fill = NA, font = 2, cex = 1, col = "blue")
+vegan::rarecurve(H.year, ylab = "Number of expected MLGs", col = "blue",
+    sample = min(rowSums(H.year)), border = NA, fill = NA, font = 2, cex = 1)
 
 ## ----subcross---------------------------------------------------------------------------
 setPop(H3N2) <- ~country
@@ -458,29 +451,32 @@ H3N2.id[as.character(UGNN)]
 ## ----mlgsub_flag, eval=FALSE------------------------------------------------------------
 #  mlg.table(H3N2, mlgsub = UGNN)
 
-## ----mlgsub_flagshow, results='hide', echo=FALSE, out.width = "0.8\\linewidth"----------
+## ----mlgsub_flagshow, results='hide', echo=FALSE, fig.cap = "All populations that contain these MLGs"----
 mlg.table(H3N2, mlgsub = UGNN)
 
-## ----Aeut_MLG_Aeut, fig.width = 7, fig.height = 3, out.width = "0.8\\linewidth"---------
+## ----Aeut_MLG_Aeut, fig.width = 7, fig.height = 3---------------------------------------
 library("poppr")
 library("ggplot2")
 data(Aeut)
 Aeut.tab <- mlg.table(Aeut)
 p <- last_plot()
 
-## ----Aeut_MLG_title, fig.width = 7, fig.height = 3, out.width = "0.8\\linewidth"--------
-myTitle <- expression(paste(italic("Aphanomyces euteiches"), " multilocus genotype distribution"))
+## ----Aeut_MLG_title, fig.width = 7, fig.height = 3--------------------------------------
+myTitle <- expression(paste(italic("Aphanomyces euteiches"), 
+                      " multilocus genotype distribution"))
 (pt <- p +
    ggtitle(myTitle) +
    xlab("Multilocus genotype")) # We can label the x axis, too
 
-## ----Aeut_MLG_theme, fig.width = 7, fig.height = 3, out.width = "0.8\\linewidth"--------
+## ----Aeut_MLG_theme, fig.width = 7, fig.height = 3--------------------------------------
 (ptt <- pt + theme_bw())
 
-## ----Aeut_MLG_theme_axis, fig.width = 7, fig.height = 3, out.width = "0.8\\linewidth"----
-(ptta <- ptt + theme(axis.text.x = element_blank(), axis.ticks.x = element_blank()))
+## ----Aeut_MLG_theme_axis, fig.width = 7, fig.height = 3---------------------------------
+(ptta <- ptt + theme(axis.text.x = element_blank()) +
+  theme(axis.ticks.x = element_blank()) +
+  theme(panel.grid.major.x = element_blank()))
 
-## ----Aeut_silly, fig.width = 7, fig.height = 3, out.width = "0.8\\linewidth"------------
+## ----Aeut_silly, fig.width = 7, fig.height = 3------------------------------------------
 (ptttaf <- ptta + aes(fill = count))
 
 ## ----Aeut_MLG_data----------------------------------------------------------------------
@@ -488,16 +484,16 @@ head(p$data)
 
 ## ----ggsave1, eval=FALSE----------------------------------------------------------------
 #  data(nancycats) # Load the data set.
-#  poppr(nancycats, sample=999) # Produce a single plot.
+#  poppr(nancycats, sample = 999) # Produce a single plot.
 #  ggsave("nancycats.pdf")
 
 ## ----png_save, eval=FALSE---------------------------------------------------------------
 #  data(nancycats)
-#  ####
+#  
 #  png("nancy_pair%02d.png", width = 14, height = 14, units = "in", res = 300)
 #  poppairs <- lapply(seppop(nancycats), pair.ia, limits = c(-0.25, 1))
 #  dev.off()
-#  ####
+#  
 
 ## ----pdf_save, eval=FALSE---------------------------------------------------------------
 #  pdf("nancy_pair.png", width = 14, height = 14, compress = FALSE)

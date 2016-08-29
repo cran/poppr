@@ -1,3 +1,28 @@
+poppr 2.2.1
+===========
+
+BUG FIX
+-----------
+
+* A problem exporting haploid sequence data to genalex format was fixed 
+  (see https://github.com/grunwaldlab/poppr/issues/108)
+* Data without population structure no longer throws an error in `imsn()`
+
+NEW FEATURES
+-----------
+
+* You can now specify layout parameters in `imsn()`
+* The *.msn functions will now take into account whether or not your data is set
+  to collapsed MLGs. (see https://github.com/grunwaldlab/poppr/issues/107)
+
+MISC
+----
+
+* Errors from mlg.filter now make more sense. 
+  (see https://github.com/grunwaldlab/poppr/issues/109)
+* The vignette poppr_manual has been converted to HTML format.
+  (see https://github.com/grunwaldlab/poppr/issues/113)
+
 poppr 2.2.0
 ===========
 

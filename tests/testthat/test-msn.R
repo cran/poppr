@@ -1,5 +1,3 @@
-context("Minimum spanning network functions")
-
 options(warn = -1)
 ucl <- function(x){
   unclass(x$graph)[-10]
@@ -7,10 +5,14 @@ ucl <- function(x){
 
 set.seed(9005)
 
-gend <-new("genind"
-           , tab = structure(c(0.5, 0.5, 0, 0, 0.5, 0.5, 1, 1, 0, 0.5, 0.5, 0, 1,
-                               0.5, 0.5, 1)*2, .Dim = c(4L, 4L), .Dimnames = list(c("1", "2",
-                                                                                  "3", "4"), c("loc-1.1", "loc-1.2", "loc-2.1", "loc-2.2")))
+gend <- new("genind"
+           , tab = structure(c(1L, 1L, 0L, 0L, 
+                               1L, 1L, 2L, 2L,
+                               0L, 1L, 1L, 0L, 
+                               2L, 1L, 1L, 2L), 
+              .Dim = c(4L, 4L), 
+              .Dimnames = list(c("1", "2", "3", "4"), 
+                               c("loc-1.1", "loc-1.2", "loc-2.1", "loc-2.2")))
            , loc.names = structure(c("loc-1", "loc-2"), .Names = c("loc-1", "loc-2"))
            , loc.fac = structure(c(1L, 1L, 2L, 2L), .Label = c("loc-1", "loc-2"), class = "factor")
            , loc.nall = structure(c(2L, 2L), .Names = c("loc-1", "loc-2"))
@@ -26,24 +28,13 @@ gend <-new("genind"
            , other = NULL
 )
 
+gend_gc    <- as.genclone(gend)
+gend_bruvo <- bruvo.dist(gend, replen = c(1, 1))
+
 set.seed(9005)
 
-gend_single <- new("genind"
-    , tab = structure(c(0.5, 0.5, 0, 0, 0.5, 0.5, 1, 1, 0, 0.5, 0.5, 0, 1, 0.5, 0.5, 1)*2, .Dim = c(4L, 4L), .Dimnames = list(c("1", "2",
-"3", "4"), c("loc-1.1", "loc-1.2", "loc-2.1", "loc-2.2")))
-    , loc.names = structure(c("loc-1", "loc-2"), .Names = c("loc-1", "loc-2"))
-    , loc.fac = structure(c(1L, 1L, 2L, 2L), .Label = c("loc-1", "loc-2"), class = "factor")
-    , loc.nall = structure(c(2L, 2L), .Names = c("loc-1", "loc-2"))
-    , all.names = structure(list(`loc-1` = structure(c("3", "4"), .Names = c("1", "2")), `loc-2` = structure(c("3", "4"), .Names = c("1", "2"))), .Names = c("loc-1",
-"loc-2"))
-    , call = NULL
-    , ind.names = structure(c("", "", "", ""), .Names = c("1", "2", "3", "4"))
-    , pop = structure(c(1,1,1,1), .Label = c("1"), class = "factor")
-    , pop.names = structure(c("1","1","1","1"))
-    , ploidy = 2L
-    , type = "codom"
-    , other = NULL
-)
+gend_single <- gend
+pop(gend_single) <- rep(1, 4)
 
 no_ties <- structure(list(graph = structure(list(4, FALSE, c(3, 2, 3), c(0,
 1, 2), c(1, 0, 2), c(0, 1, 2), c(0, 0, 0, 1, 3), c(0, 1, 2, 3,
@@ -117,56 +108,93 @@ if (packageVersion("igraph") >= package_version("1.0.0")){
 
 options(warn = 0)
 
-test_that("Minimum spanning networks can properly account for tied edges", {
+
+context("Tied MSN edge tests")
+
+test_that("bruvo.msn can properly account for tied edges", {
 
   # Test Bruvo.msn
   set.seed(9005)
   expect_equal(ucl(bruvo.msn(gend, replen=c(1,1))), ucl(no_ties))
   set.seed(9005)
   expect_equal(ucl(bruvo.msn(gend, replen=c(1,1), include.ties = TRUE)), ucl(ties))
+})
 
+test_that("poppr.msn can properly account for tied edges", {
   # Test poppr.msn
   set.seed(9005)
   expect_equal(ucl(poppr.msn(gend, distmat=bruvo.dist(gend,replen=c(1,1)))), ucl(no_ties))
   set.seed(9005)
   expect_equal(ucl(poppr.msn(gend, distmat=bruvo.dist(gend,replen=c(1,1)), include.ties = TRUE)), ucl(ties))
+})
 
+test_that("bruvo.msn can work with single populations", {
   # Test both for single populations sets
   set.seed(9005)
   expect_equal(ucl(bruvo.msn(gend_single, replen=c(1,1))), ucl(no_ties_single))
   set.seed(9005)
   expect_equal(ucl(bruvo.msn(gend_single, replen=c(1,1), include.ties = TRUE)), ucl(ties_single))
-  set.seed(9005)
-  expect_equal(ucl(poppr.msn(gend_single, distmat=bruvo.dist(gend_single,replen=c(1,1)))), ucl(no_ties_single))
-  set.seed(9005)
-  expect_equal(ucl(poppr.msn(gend_single, distmat=bruvo.dist(gend_single,replen=c(1,1)), include.ties = TRUE)), ucl(ties_single))
-
 })
+
+test_that("poppr.msn can work with single populations", {
+  gs.bruvo <- bruvo.dist(gend_single,replen=c(1,1))
+  set.seed(9005)
+  expect_equal(ucl(poppr.msn(gend_single, distmat = gs.bruvo)), ucl(no_ties_single))
+  set.seed(9005)
+  expect_equal(ucl(poppr.msn(gend_single, distmat = gs.bruvo, include.ties = TRUE)), ucl(ties_single))
+})
+
+
+context("MSN and collapsed MLG tests")
+
+gmsnt <- bruvo.msn(gend, replen = c(1, 1), threshold = 0.15)
 
 test_that("Minimum spanning networks also collapse MLGs", {
   skip_on_cran()
   gend        <- as.genclone(gend)
   gend_single <- as.genclone(gend_single)
-  gend_bruvo  <- bruvo.dist(gend, replen = c(1, 1))
+  
+  # Adding the filter for testing
+  mlg.filter(gend, dist = bruvo.dist, replen = c(1, 1)) <- 0.15
+  mll(gend) <- "original"
+  
+  expect_equal(igraph::vcount(gmsnt$graph), 2)
 
-  gmsnt  <- bruvo.msn(gend, replen = c(1, 1), threshold = 0.15)
   pgmsnt <- poppr.msn(gend, distmat = gend_bruvo, threshold = 0.15)
+  mll(gend) <- "contracted"
+  gmsnot  <- bruvo.msn(gend, replen = c(1, 1)) # no threshold supplied
+  gmsnone <- bruvo.msn(gend, replen = c(1, 1), threshold = 0.3)
+  expect_equal(igraph::vcount(gmsnone$graph), 1)
+  gmsnall  <- bruvo.msn(gend, replen = c(1, 1), threshold = 0)
+  expect_equal(igraph::vcount(gmsnall$graph), 4)
 
   expect_identical(igraph::V(gmsnt$graph)$pie, igraph::V(pgmsnt$graph)$pie)
+  expect_identical(igraph::V(gmsnot$graph)$pie, igraph::V(pgmsnt$graph)$pie)
+  
   expect_identical(igraph::V(gmsnt$graph)$name, igraph::V(pgmsnt$graph)$name)
+  expect_identical(igraph::V(gmsnot$graph)$name, igraph::V(pgmsnt$graph)$name)
+  
   expect_identical(igraph::E(gmsnt$graph)$weight, igraph::E(pgmsnt$graph)$weight)
+  expect_identical(igraph::E(gmsnot$graph)$weight, igraph::E(pgmsnt$graph)$weight)
   
-  
+  mll(gend) <- "original"
   gmsn   <- bruvo.msn(gend, replen = c(1, 1), showplot = FALSE)
+  expect_equal(igraph::vcount(gmsn$graph), 4)
   pgmsn  <- poppr.msn(gend, distmat = gend_bruvo, showplot = FALSE)
 
   expect_identical(igraph::V(gmsn$graph)$pie, igraph::V(pgmsn$graph)$pie)
+  expect_identical(igraph::V(gmsn$graph)$pie, igraph::V(gmsnall$graph)$pie)
+  
   expect_identical(igraph::V(gmsn$graph)$name, igraph::V(pgmsn$graph)$name)
+  expect_identical(igraph::V(gmsn$graph)$name, igraph::V(gmsnall$graph)$name)
+  
   expect_identical(igraph::E(gmsn$graph)$weight, igraph::E(pgmsn$graph)$weight)
+  expect_identical(igraph::E(gmsn$graph)$weight, igraph::E(gmsnall$graph)$weight)
+  
+})
 
-  expect_equal(length(igraph::V(gmsnt$graph)), 2)
-  expect_equal(length(igraph::V(gmsn$graph)), 4)
-
+test_that("Minimum spanning networks can collapse MLGs with single populations", {
+  skip_on_cran()
   sgmsnt  <- bruvo.msn(gend_single, replen = c(1, 1), threshold = 0.15)
   psgmsnt <- poppr.msn(gend_single, distmat = gend_bruvo, threshold = 0.15)
 
@@ -181,8 +209,8 @@ test_that("Minimum spanning networks also collapse MLGs", {
   expect_identical(igraph::V(sgmsn$graph)$name, igraph::V(psgmsn$graph)$name)
   expect_identical(igraph::E(sgmsn$graph)$weight, igraph::E(psgmsn$graph)$weight)
 
-  expect_equal(length(igraph::V(sgmsnt$graph)), 2)
-  expect_equal(length(igraph::V(sgmsn$graph)), 4)
+  expect_equal(igraph::vcount(sgmsnt$graph), 2)
+  expect_equal(igraph::vcount(sgmsn$graph), 4)
 
   expect_output(plot_poppr_msn(gend, gmsnt, palette = "cm.colors"), NA)
   expect_output(plot_poppr_msn(gend_single, sgmsnt, palette = "cm.colors"), NA)
@@ -230,6 +258,8 @@ test_that("Filtered minimum spanning networks retain original names", {
   expect_identical(cc_names, head(all_names, -1))
 })
 
+context("minimum spanning network subset populations")
+
 data("partial_clone")
 pc <- as.genclone(partial_clone)
 
@@ -249,6 +279,7 @@ test_that("Minimum spanning networks can subset populations", {
   
 })
 
+context("custom MLLs and minimum spanning networks")
 
 mll.custom(pc) <- LETTERS[mll(pc)]
 mll.levels(pc)[mll.levels(pc) == "Q"] <- "M"
@@ -261,6 +292,8 @@ test_that("msn works with custom MLLs", {
   expect_error(plot_poppr_msn(pc, pcmsn), NA)
   expect_error(plot_poppr_msn(pc, pcmsn, mlg = TRUE), NA)
 })
+
+context("Minimum spanning network aesthetics")
 
 test_that("vectors can be used to color graphs", {
   skip_on_cran()

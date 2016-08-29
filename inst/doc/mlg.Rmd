@@ -4,19 +4,20 @@ author: Zhian N. Kamvar and Niklaus J. Grünwald
 date: "`r Sys.Date()`"
 bibliography: the_bibliography.bib
 output:
-  html_vignette:
+  rmarkdown::html_vignette:
     toc: true
     toc_depth: 2
+    fig_width: 5
+    fig_height: 5
 vignette: >
   %\VignetteIndexEntry{Multilocus Genotype Analysis}
   %\VignetteEngine{knitr::rmarkdown}
-  \usepackage[utf8]{inputenc}
+  %\VignetteEncoding{UTF-8}
 ---
 
 ```{r, echo = FALSE, message = FALSE, warning = FALSE}
 knitr::opts_chunk$set(message = FALSE, warning = FALSE, tidy = FALSE)
-knitr::opts_chunk$set(fig.align = "center", fig.show = 'asis', fig.height = 5,
-                      fig.width = 5)
+knitr::opts_chunk$set(fig.align = "center", fig.show = 'asis')
 library("knitcitations")
 cite_options(citation_format = "pandoc", max.names = 3, style = "html", 
              hyperlink = "to.doc")
@@ -36,7 +37,7 @@ and snpclone objects.
 <br>
 <br>
 
-<img src="popprlogo.png" width="300">
+<img src="jalapeno_logo.png" width="300">
 </center>
 
 ----

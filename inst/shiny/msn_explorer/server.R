@@ -1,6 +1,6 @@
 library("shiny")
 library("poppr")
-source("../utils.R")
+source("../utils.R", local = TRUE)
 #------------------------------------------------------------------------------#
 # Here, we query the user's R session to find all of the genind and genclone 
 # objects
@@ -124,7 +124,7 @@ shinyServer(function(input, output, session) {
   # Simply a reactive for the input above.
   #-------------------------------------
   sub_list <- reactive({
-    input$sublist
+    if (is.null(input$sublist)) NA else input$sublist
   })
   #-------------------------------------
   # This parses the data according to 
@@ -256,6 +256,25 @@ shinyServer(function(input, output, session) {
   # always treated with "mean".
   #============================================================================#
 
+  #-------------------------------------
+  # If the user selects "Custom" for the
+  # distance function, they must supply
+  # the name of the function. By default
+  # an example of euclidean distance is
+  # displayed.
+  #-------------------------------------
+  output$customLayout <- renderUI({
+    textInput("custom_layout", label = "Custom Layout Function", "function(x) matrix(rnorm(igraph::vcount(x)*2), ncol = 2)")
+  })
+  
+  layfun <- reactive({ 
+    if (input$layout == "Custom"){
+      the_lay <- parse_distfun(input$custom_layout)
+    } else {
+      the_lay <- paste0("igraph::", input$layout)
+    }
+    return(the_lay)
+  })
   #-------------------------------------
   # This reactive calculates the distance
   # by parsing the distance and then
@@ -429,16 +448,19 @@ shinyServer(function(input, output, session) {
   cmd <- reactive({
     dat <- dataname()
     pal <- ifelse(input$pal == 'custom', input$custom_pal, input$pal)
+    padding <- paste(rep(" ", 15), collapse = "")
     paste0("plot_poppr_msn(", dat, 
-           ",\n\t       min_span_net", 
-           ",\n\t       inds = ", make_dput(inds()), 
-           ",\n\t       mlg = ", input$mlgs,
-           ",\n\t       gadj = ", input$greyslide,
-           ",\n\t       nodebase = ", input$nodebase,
-           ",\n\t       palette = ", pal,
-           ",\n\t       cutoff = ", ifelse(is.null(cutoff()), "NULL", cutoff()),
-           ",\n\t       quantiles = FALSE",
-           ",\n\t       beforecut = ", bcut(), ")")
+           ",\n", padding, "min_span_net", 
+           ",\n", padding, "inds = ", make_dput(inds()), 
+           ",\n", padding, "mlg = ", input$mlgs,
+           ",\n", padding, "gadj = ", input$greyslide,
+           ",\n", padding, "nodebase = ", input$nodebase,
+           ",\n", padding, "palette = ", pal,
+           ",\n", padding, "cutoff = ", ifelse(is.null(cutoff()), "NULL", cutoff()),
+           ",\n", padding, "quantiles = FALSE",
+           ",\n", padding, "beforecut = ", bcut(), 
+           ",\n", padding, "layfun = ", layfun(), 
+           ")")
   })
 
   #-------------------------------------
@@ -487,7 +509,8 @@ shinyServer(function(input, output, session) {
                      beforecut = bcut(), 
                      nodebase = nodebase(),
                      pop.leg = popLeg(), 
-                     scale.leg = scaleLeg()
+                     scale.leg = scaleLeg(),
+                     layfun = eval(parse(text = layfun()))
                     )      
     }
   })
@@ -524,7 +547,8 @@ shinyServer(function(input, output, session) {
                        beforecut = bcut(),
                        nodebase = nodebase(),
                        pop.leg = popLeg(),
-                       scale.leg = scaleLeg()
+                       scale.leg = scaleLeg(),
+                       layfun = eval(parse(text = layfun()))
                       )
         dev.off()
       })      
@@ -552,7 +576,8 @@ shinyServer(function(input, output, session) {
                        beforecut = bcut(),
                        nodebase = nodebase(),
                        pop.leg = popLeg(),
-                       scale.leg = scaleLeg()
+                       scale.leg = scaleLeg(),
+                       layfun = eval(parse(text = layfun()))
                       )
         dev.off()
       })      

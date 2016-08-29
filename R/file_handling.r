@@ -461,6 +461,9 @@ read.genalex <- function(genalex, ploidy = 2, geo = FALSE, region = FALSE,
 #' @param sep a character specifying what character to use to separate columns. 
 #'   Defaults to ",".
 #'   
+#' @param sequence when \code{TRUE}, sequence data will be converted to integers
+#'   as per the GenAlEx specifications.
+#'   
 #' @note If you enter a file name that exists, that file will be overwritten. If
 #'   your data set lacks a population structure, it will be coded in the new 
 #'   file as a single population labeled "Pop". Likewise, if you don't have any
@@ -479,7 +482,8 @@ read.genalex <- function(genalex, ploidy = 2, geo = FALSE, region = FALSE,
 #' }
 #==============================================================================#
 genind2genalex <- function(gid, filename = "genalex.csv", quiet = FALSE, pop = NULL, 
-                           allstrata = TRUE, geo = FALSE, geodf = "xy", sep = ","){
+                           allstrata = TRUE, geo = FALSE, geodf = "xy", sep = ",",
+                           sequence = FALSE){
   if (!is.genind(gid)) stop("A genind object is needed.")
   if (nchar(sep) != 1) stop("sep must be one byte/character (eg. \",\")")
   
@@ -516,9 +520,13 @@ genind2genalex <- function(gid, filename = "genalex.csv", quiet = FALSE, pop = N
   # Constructing the locus names. GenAlEx separates the alleles of the loci, so
   # There is one locus name for every p ploidy columns you have.
   if(all(ploid > 1) & gid@type == "codom"){
-    locnames <- unlist(strsplit(paste(locNames(gid), 
-                                      paste(rep(" ", ploidy(gid)[1] - 1), 
-                                            collapse="/"), sep="/"),"/"))
+    # To intersperse spaces between the locus names, make a ploidy x loci
+    # matrix, fill the first row with the loci names, fill the rest with
+    # emptiness, and then convert it into a vector.
+    locnames       <- matrix(character(nLoc(gid)*max(ploid)), nrow = max(ploid))
+    locnames[1, ]  <- locNames(gid)
+    locnames[-1, ] <- " "
+    dim(locnames)  <- NULL
   } else {
     locnames <- locNames(gid)
   }
@@ -537,15 +545,20 @@ genind2genalex <- function(gid, filename = "genalex.csv", quiet = FALSE, pop = N
   }
   infolines <- rbind(topline, secondline, thirdline)
 
-  
-  # converting to a data frame
-  # if(any gid@tab %in% c(0, ((1:ploid)/ploid), 1, NA))){
-  #   gid@tab[ gid@tab %in% c(0, ((1:ploid)/ploid), 1, NA)] <- NA
-  # }
+  if (sequence){
+    alleles(gid) <- lapply(alleles(gid), function(i){
+      i <- tolower(i)
+      vapply(i, switch, integer(1), 
+             a = 1L, c = 2L, g = 3L, t = 4L, 
+             "-" = 5L, ":" = 5L, 0L)
+    })
+  }
   if(!quiet) cat("Extracting the table ... ")
   the_gid <- as.character(pop(gid))
   df      <- genind2df(gid, sep = "/", usepop = FALSE)
-  df      <- generate_bruvo_mat(df, maxploid = max(ploid), sep = "/", mat = TRUE)
+  if (any(ploid > 1)){
+    df <- generate_bruvo_mat(df, maxploid = max(ploid), sep = "/", mat = TRUE)
+  }
   df[is.na(df)] <- 0
   
   # making sure that the individual names are included.

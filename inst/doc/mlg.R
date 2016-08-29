@@ -1,7 +1,6 @@
 ## ---- echo = FALSE, message = FALSE, warning = FALSE---------------------
 knitr::opts_chunk$set(message = FALSE, warning = FALSE, tidy = FALSE)
-knitr::opts_chunk$set(fig.align = "center", fig.show = 'asis', fig.height = 5,
-                      fig.width = 5)
+knitr::opts_chunk$set(fig.align = "center", fig.show = 'asis')
 library("knitcitations")
 cite_options(citation_format = "pandoc", max.names = 3, style = "html", 
              hyperlink = "to.doc")
