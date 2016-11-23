@@ -1104,8 +1104,11 @@ plot_poppr_msn <- function(x, poppr_msn, gscale = TRUE, gadj = 3,
 #'   multilocus genotypes, rounded. Defaults to 1, which will draw a line at the
 #'   maximum number of observable genotypes.
 #'   
-#' @return (invisibly) a matrix of integers showing the results of each 
-#'   randomization. Columns represent the number of loci sampled and rows 
+#' @param plot if \code{TRUE} (default), the genotype curve will be plotted via 
+#'   ggplot2. If \code{FALSE}, the resulting matrix will be visibly returned.
+#'   
+#' @return (invisibly by deafuls) a matrix of integers showing the results of
+#'   each randomization. Columns represent the number of loci sampled and rows 
 #'   represent an independent sample.
 #'   
 #' @details Internally, this function works by converting the data into a 
@@ -1125,6 +1128,10 @@ plot_poppr_msn <- function(x, poppr_msn, gscale = TRUE, gadj = 3,
 #' # With AFLP data, it is often necessary to include more markers for resolution
 #' data(Aeut)
 #' Ageno <- genotype_curve(Aeut)
+#' # Trendlines: you can add a smoothed trendline with geom_smooth()
+#' library("ggplot2")
+#' p <- last_plot()
+#' p + geom_smooth()
 #' 
 #' # Many microsatellite data sets have hypervariable markers
 #' data(microbov)
@@ -1132,20 +1139,32 @@ plot_poppr_msn <- function(x, poppr_msn, gscale = TRUE, gadj = 3,
 #' 
 #' # This data set has been pre filtered
 #' data(monpop)
-#' mongeno <- genotype_curve(monpop)}
+#' mongeno <- genotype_curve(monpop)
+#' 
+#' # Here, we add a curve and a title for publication
+#' p <- last_plot()
+#' mytitle <- expression(paste("Genotype Accumulation Curve for ", 
+#'                             italic("M. fructicola")))
+#' p + geom_smooth() + 
+#'   theme_bw() + 
+#'   theme(text = element_text(size = 12, family = "serif")) +
+#'   theme(title = element_text(size = 14)) +
+#'   ggtitle(mytitle)
+#' }
 #==============================================================================#
 #' @importFrom pegas loci2genind
 genotype_curve <- function(gen, sample = 100, maxloci = 0L, quiet = FALSE, 
-                           thresh = 1){
+                           thresh = 1, plot = TRUE){
   datacall <- match.call()
   if (!inherits(gen, c("genind", "genclone", "loci"))){
     stop(paste(datacall[2], "must be a genind or loci object"))
   }
+  quiet <- should_poppr_be_quiet(quiet)
   if (inherits(gen, "loci")){
     genloc <- gen
     gen    <- pegas::loci2genind(gen)
   } else {
-    genloc   <- pegas::as.loci(gen)
+    genloc <- pegas::as.loci(gen)
   }
   if (!is.genclone(gen)) gen <- as.genclone(gen)
   if (nLoc(gen) == 1){
@@ -1161,24 +1180,30 @@ genotype_curve <- function(gen, sample = 100, maxloci = 0L, quiet = FALSE,
   out    <- .Call("genotype_curve", genloc, sample, nloci, report, PACKAGE = "poppr")
   if (!quiet) cat("\n")
   colnames(out) <- seq(nloci)
+  # Visibly return the data if plot = FALSE
+  if (!plot){
+    return(out)
+  }
   suppressWarnings(max_obs  <- nmll(gen, "original"))
   threshdf <- data.frame(x = round(max_obs*thresh))
   outmelt  <- melt(out, value.name = "MLG", varnames = c("sample", "NumLoci"))
-  aesthetics <- aes_string(x = "factor(NumLoci)", y = "MLG", group = "NumLoci")
-  outplot <- ggplot(outmelt, aesthetics) + geom_boxplot() + 
+  aesthetics <- aes_string(x = "NumLoci", y = "MLG")
+  outplot <- ggplot(outmelt, aesthetics) + 
+             geom_boxplot(aes_string(group = "factor(NumLoci)")) + 
              labs(list(title = paste("Genotype accumulation curve for", datacall[2]), 
-                       y = "Number of multilocus genotypes",
-                       x = "Number of loci sampled")) 
+                       y           = "Number of multilocus genotypes",
+                       x           = "Number of loci sampled")) +
+             scale_x_continuous(breaks = seq(nloci), expand = c(0, 0.125))
   if (!is.null(thresh)){
     outbreaks <- sort(c(pretty(0:max_obs), threshdf$x))
-    tjust <- ifelse(thresh > 0.9, 1.5, -1)
-    outplot <- outplot + geom_hline(aes_string(yintercept = "x"), 
-                                    data = threshdf, color = "red", linetype = 2) + 
-                         annotate("text", x = 1, y = threshdf$x, vjust = tjust, 
-                                  label = paste0(thresh*100, "%"), 
-                                  color = "red", hjust = 0) +
-                         scale_y_continuous(breaks = outbreaks, 
-                                            limits = c(0, max_obs))
+    tjust     <- ifelse(thresh > 0.9, 1.5, -1)
+    outplot   <- outplot + 
+                 geom_hline(aes_string(yintercept = "x"), data = threshdf, 
+                            color = "red", linetype = 2) + 
+                 annotate("text", x = 1, y = threshdf$x, vjust = tjust, 
+                          label = paste0(thresh*100, "%"), color = "red",
+                          hjust = 0) +
+                 scale_y_continuous(breaks = outbreaks, limits = c(0, max_obs))
   }
   print(outplot)
   return(invisible(out))

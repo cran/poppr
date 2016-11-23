@@ -6,7 +6,7 @@
 \title{Index of Association}
 \usage{
 ia(gid, sample = 0, method = 1, quiet = FALSE, missing = "ignore",
-  hist = TRUE, index = "rbarD", valuereturn = FALSE)
+  plot = TRUE, hist = TRUE, index = "rbarD", valuereturn = FALSE)
 
 pair.ia(gid, quiet = FALSE, plot = TRUE, low = "blue", high = "red",
   limits = NULL, index = "rbarD")
@@ -29,8 +29,11 @@ performing calculations?
 
 \item{missing}{a character string. see \code{\link{missingno}} for details.}
 
-\item{hist}{\code{logical} if \code{TRUE}, a histogram will be printed for 
-each population if there is sampling.}
+\item{plot}{When \code{TRUE} (default), a heatmap of the values per locus
+pair will be plotted (for pair.ia). For `ia()`, if \code{sampling > 0}, a
+histogram will be produced for each population.}
+
+\item{hist}{\code{logical} Deprecated. Use plot.}
 
 \item{index}{\code{character} either "Ia" or "rbarD". If \code{hist = TRUE}, 
 this indicates which index you want represented in the plot (default:
@@ -39,9 +42,6 @@ this indicates which index you want represented in the plot (default:
 \item{valuereturn}{\code{logical} if \code{TRUE}, the index values from the 
 reshuffled data is returned. If \code{FALSE} (default), the index is 
 returned with associated p-values in a 4 element numeric vector.}
-
-\item{plot}{(for pair.ia) when \code{TRUE} (default), a heatmap of the values
-per locus pair will be plotted.}
 
 \item{low}{(for pair.ia) a color to use for low values when \code{plot =
 TRUE}}

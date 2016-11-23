@@ -5,6 +5,7 @@ data("Pinf", package = "poppr")
 nancy <- popsub(nancycats, c(1, 9))
 ggversion <- packageVersion("ggplot2")
 oldgg <- package_version("1.0.1")
+pcap <- function(x) print(capture.output(x))
 
 test_that("info_table plots work", {
 	skip_on_cran()
@@ -23,7 +24,6 @@ test_that("info_table plots work", {
 	expect_equal(Pinf.ploid["PiCO01", "Pi4B"], 3)
 
 	expect_output(print(pp$layers[[1]]), "geom_tile")
-	expect_output(print(pp$facet), "facet_null\\(\\)")
 
 	expect_output(print(np$layers[[1]]), "geom_tile")
 	expect_output(print(np$layers[[2]]), "geom_hline")
@@ -31,7 +31,6 @@ test_that("info_table plots work", {
 	expect_output(print(np$layers[[4]]), "geom_text")
 
 	expect_equal(length(nc$layers), 3)
-	expect_output(print(np$facet), "facet_null\\(\\)")
 })
 
 test_that("info_table plots ploidy for diploids", {
@@ -47,7 +46,6 @@ test_that("mlg.table produces barplots", {
 	pt <- ggplot2::last_plot()
 	expect_is(pt, "ggplot")
 	expect_equal(names(pt$data), c("Population", "MLG", "count", "fac"))
-	expect_output(print(pt$facet), "facet_wrap\\(Population\\)")
 	expect_output(print(pt$layers), "geom_bar")
 })
 
@@ -60,7 +58,6 @@ test_that("genotype_curve produces boxplots", {
 	pg <- ggplot2::last_plot()
 	expect_is(pg, "ggplot")
 	expect_equal(names(pg$data), c("sample", "NumLoci", "MLG"))
-	expect_output(print(pg$facet), "facet_null\\(\\)")
 	expect_output(print(pg$layers[[1]]), "geom_boxplot")
 	expect_output(print(pg$layers[[2]]), "geom_hline")
 	expect_output(print(pg$layers[[3]]), "geom_text")
@@ -80,6 +77,14 @@ test_that("genotype_curve can take less than m-1 loci", {
   expect_equal(ncol(nc), 2L)
   expect_equal(ncol(nc1), 1L)
   expect_error(genotype_curve(nancycats[loc = 1]), "at least two loci")
+})
+
+test_that("genotype_curve will not plot if you tell it", {
+  skip_on_cran()
+  # No output here
+  expect_output(pcap(genotype_curve(nancycats, maxloci = 1, quiet = TRUE)), "character\\(0\\)")
+  # Some output here
+  expect_output(pcap(genotype_curve(nancycats, maxloci = 1, quiet = TRUE, plot = FALSE)))
 })
 
 test_that("ia produces histograms", {
@@ -106,7 +111,6 @@ test_that("ia produces histograms", {
 	expect_output(print(iaplot$layers[[3]]), "geom_vline")
 	expect_output(print(iaplot$layers[[4]]), "geom_text")
 	expect_output(print(iaplot$layers[[5]]), "geom_text")
-	expect_output(print(iaplot$facet), "facet_null\\(\\)")
 
 	if (ggversion <= oldgg){
 	  expect_output(print(poplot$layers[[1]]), "geom_histogram")
@@ -116,7 +120,6 @@ test_that("ia produces histograms", {
 	
 	expect_output(print(poplot$layers[[2]]), "geom_rug")
 	expect_output(print(poplot$layers[[3]]), "geom_vline")
-	expect_output(print(poplot$facet), "facet_wrap\\(population\\)")
 })
 
 test_that("pair.ia produces a heatmap", {
@@ -147,7 +150,6 @@ test_that("pair.ia produces a heatmap", {
 	expect_output(print(pplot$layers[[1]]), "geom_tile")
 	expect_output(print(pplot$layers[[1]]), "stat_identity")
 	expect_output(print(pplot$layers[[1]]), "position_identity")
-	expect_output(print(pplot$facet), "facet_null\\(\\)")
 })
 
 test_that("diversity_ci produces boxplots and correct output", {
@@ -163,7 +165,6 @@ test_that("diversity_ci produces boxplots and correct output", {
 	expect_output(print(ciplot$layers[[1]]), "geom_boxplot")
 	expect_output(print(ciplot$layers[[2]]), "geom_point")
 	expect_output(print(ciplot$layers[[3]]), "geom_errorbar")
-	expect_output(print(ciplot$facet), "facet_wrap\\(Index\\)")
 
 })
 
@@ -181,7 +182,6 @@ test_that("diversity_ci produces boxplots for rarefaction", {
 	expect_equal(length(ciplot$layers), 2)
 	expect_output(print(ciplot$layers[[1]]), "geom_boxplot")
 	expect_output(print(ciplot$layers[[2]]), "geom_point")
-	expect_output(print(ciplot$facet), "facet_wrap\\(Index\\)")
 })
 
 

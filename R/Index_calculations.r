@@ -313,6 +313,7 @@ poppr <- function(dat, total = TRUE, sublist = "ALL", blacklist = NULL,
                   "the function diversity_table().")
     stop(msg)
   }
+  quiet <- should_poppr_be_quiet(quiet)
   x <- process_file(dat, missing = missing, cutoff = cutoff, 
                     clonecorrect = clonecorrect, strata = strata,
                     keep = keep, quiet = TRUE)  
@@ -532,8 +533,11 @@ poppr.all <- function(filelist, ...){
 #'   
 #' @param missing a character string. see \code{\link{missingno}} for details.
 #'   
-#' @param hist \code{logical} if \code{TRUE}, a histogram will be printed for 
-#'   each population if there is sampling.
+#' @param plot When \code{TRUE} (default), a heatmap of the values per locus
+#'   pair will be plotted (for pair.ia). For `ia()`, if \code{sampling > 0}, a
+#'   histogram will be produced for each population.
+#'   
+#' @param hist \code{logical} Deprecated. Use plot.
 #' 
 #' @param index \code{character} either "Ia" or "rbarD". If \code{hist = TRUE}, 
 #'   this indicates which index you want represented in the plot (default:
@@ -715,17 +719,17 @@ poppr.all <- function(filelist, ...){
 #' 
 #' }
 #==============================================================================#
-ia <- function(gid, sample=0, method=1, quiet=FALSE, missing="ignore", 
-                hist = TRUE, index = "rbarD", valuereturn = FALSE){
+ia <- function(gid, sample = 0, method = 1, quiet = FALSE, missing = "ignore", 
+               plot = TRUE, hist = TRUE, index = "rbarD", valuereturn = FALSE){
   namelist <- list(population = ifelse(nPop(gid) > 1 | is.null(gid@pop), 
                                        "Total", popNames(gid)),
                    File = as.character(match.call()[2])
                   )
-  
+  hist    <- plot
   popx    <- gid
   missing <- toupper(missing)
   type    <- gid@type
-  
+  quiet   <- should_poppr_be_quiet(quiet)
   if (type == "PA"){
     .Ia.Rd <- .PA.Ia.Rd
   } else {
@@ -782,8 +786,6 @@ ia <- function(gid, sample=0, method=1, quiet=FALSE, missing="ignore",
 
 #==============================================================================#
 #' @rdname ia
-#' @param plot (for pair.ia) when \code{TRUE} (default), a heatmap of the values
-#'   per locus pair will be plotted.
 #' @param low (for pair.ia) a color to use for low values when \code{plot =
 #'   TRUE}
 #' @param high (for pair.ia) a color to use for low values when \code{plot =
@@ -800,6 +802,7 @@ pair.ia <- function(gid, quiet = FALSE, plot = TRUE, low = "blue", high = "red",
   lnames  <- locNames(gid)
   np      <- choose(N, 2)
   nploci  <- choose(numLoci, 2)
+  quiet   <- should_poppr_be_quiet(quiet)
   if (gid@type == "codom"){
     V <- pair_matrix(seploc(gid), numLoci, np)
   } else { # P/A case

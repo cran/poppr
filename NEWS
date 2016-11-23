@@ -1,3 +1,50 @@
+poppr 2.3.0
+===========
+
+NEW FUNCTIONS
+------------
+
+* The function `bootgen2genind()` will help users take advantage of 
+  bootstrapping distance functions from other packages that require genind 
+  objects. For details, see https://github.com/grunwaldlab/poppr/issues/112 and
+  https://github.com/grunwaldlab/poppr/issues/111
+
+NEW FEATURES
+------------
+
+* There is now a `plot` parameter for the genotype curve to enable or suppress
+  plotting.
+* Progress bars are now automatically suppressed when running non-interactively.
+  to turn them on when running non-interactively, use 
+  `options(poppr.debug = TRUE)`.
+* The progress bar for `ia()` and `poppr()` will now show estimated time. This
+  is from dplyr's `progress_estimated()`.
+
+MISC
+-----------
+
+* The `hist` argument in the `ia()` is deprecated in favor of `plot`.
+* The x axis for the `genotype_curve()` plot is now numeric, allowing you to
+  fit a smoothing function over the points without having to use the hack
+  `geom_smooth(aes(group = 1))`. This is thanks to Kara Woo for pointing this
+  out on twitter (https://twitter.com/kara_woo/status/783336540407685120).
+* The "show" method for genclone objects now delimits populations and strata
+  by a comma, avoiding confusion with multi-word population names. Thanks to
+  @knausb for the fix in https://github.com/grunwaldlab/poppr/pull/116.  
+* Documentation for `poppr.amova` now contains a note about significance testing
+  with the ade4 function `randtest.amova`.
+
+BUG FIX
+-----------
+
+* The subsetting methods will now properly handle mlgs when using sample names
+  to subset genclone and snpclone objects. See
+  https://github.com/grunwaldlab/poppr/issues/114 for details.
+* A plotting bug for `mlg.table()` was fixed so that the plots now show the
+  maximum value.
+* Bugs with subsetting bootgen and bruvomat objects with no loci specified were 
+  fixed. See https://github.com/grunwaldlab/poppr/issues/118 for details.
+
 poppr 2.2.1
 ===========
 

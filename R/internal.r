@@ -48,6 +48,7 @@
 #'   setNames terms update var dbinom printCoefmat
 #' @importFrom utils combn head read.table setTxtProgressBar tail txtProgressBar
 #'   write.table capture.output
+#' @importFrom dplyr progress_estimated
 NULL
 #==============================================================================#
 #' Oomycete root rot pathogen \emph{Aphanomyces euteiches} AFLP data
@@ -1925,7 +1926,7 @@ mlg_barplot <- function(mlgt, color_table = NULL){
           axis.text.x = element_text(size = 10, angle = 90, 
                                      hjust = 1, vjust = 1)) +
     xlab("MLG") + 
-    scale_y_continuous(expand = c(0, -.75))
+    scale_y_continuous(expand = c(0, 0), breaks = the_breaks)
   return(the_plot)
 }
 
@@ -2885,4 +2886,71 @@ fix_uneven_diploid <- function(x){
     }
   }
   return(x)
+}
+
+#' MLG index handler for the "[[" methods
+#' 
+#' This handles the indices for MLGs within the subset methods since they don't 
+#' know what the sample names are.
+#' @param i a vector used to subset data
+#' @param gid a genclone or snpclone object
+#'   
+#' @return a vector of integers or logicals
+#' @noRd
+#' 
+#' @seealso \code{\link{initialize,genclone-method}} 
+#'   \code{\link{initialize,snpclone-method}}
+handle_mlg_index <- function(i, gid){
+  if (is.logical(i) || is.numeric(i)){
+    return(i)
+  }
+  if (is.factor(i)){
+    i <- as.character(i)
+  } else {
+    i <- match(i, indNames(gid))         # match to the index names
+    i <- i[!is.na(i)]                    # remove missing indices
+    i <- if (length(i) == 0) TRUE else i # ignore if no result
+  }
+  return(i)
+}
+
+#' Population index handler for the "[[" methods
+#'
+#' If the user specifies populations, it takes priority
+#'
+#' @param pops vector of population indices or names
+#' @param gid a genclone or snpclone object
+#'
+#' @return a vector of logicals for each sample
+#' @noRd
+#' @seealso \code{\link{initialize,genclone-method}} 
+#'   \code{\link{initialize,snpclone-method}}
+handle_pops_index <- function(pops, gid){
+  if (!is.null(pops) && !is.null(pop(gid))){
+    pops <- if (is.factor(pops)) as.character(pops) else pops
+    pops <- if (!is.character(pops)) popNames(gid)[pops] else pops
+    newi <- pop(gid) %in% pops
+  } 
+  return(newi)
+}
+
+#' Should poppr be quiet?
+#' 
+#' If it's not an interactive session or it's in a knitr document, messages in
+#' poppr should be suppressed UNLESS poppr.debug is set to TRUE
+#'
+#' @return TRUE or FALSE
+#' @noRd
+#'
+should_poppr_be_quiet <- function(quiet){
+  # Suppress the noise if it's not interactive or in knitr
+  # This is thanks to @jimhester
+  # https://github.com/hadley/dplyr/commit/c8beb59217620614b36cd82df0a7e89c556fb374
+  in_knitr    <- !is.null(getOption("knitr.in.progress"))
+  in_script   <- !interactive()
+  poppr_debug <- getOption("poppr.debug")
+  if ((in_script || in_knitr) && !poppr_debug){
+    quiet <- TRUE
+  }
+  return(quiet)
 }

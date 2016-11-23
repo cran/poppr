@@ -5,7 +5,7 @@
 \title{Produce a genotype accumulation curve}
 \usage{
 genotype_curve(gen, sample = 100, maxloci = 0L, quiet = FALSE,
-  thresh = 1)
+  thresh = 1, plot = TRUE)
 }
 \arguments{
 \item{gen}{a \code{\linkS4class{genclone}}, \code{\linkS4class{genind}}, or
@@ -25,10 +25,13 @@ runs.}
 \item{thresh}{a number from 0 to 1. This will draw a line at that fraction of
 multilocus genotypes, rounded. Defaults to 1, which will draw a line at the
 maximum number of observable genotypes.}
+
+\item{plot}{if \code{TRUE} (default), the genotype curve will be plotted via 
+ggplot2. If \code{FALSE}, the resulting matrix will be visibly returned.}
 }
 \value{
-(invisibly) a matrix of integers showing the results of each 
-  randomization. Columns represent the number of loci sampled and rows 
+(invisibly by deafuls) a matrix of integers showing the results of
+  each randomization. Columns represent the number of loci sampled and rows 
   represent an independent sample.
 }
 \description{
@@ -53,6 +56,10 @@ nan_geno <- genotype_curve(nancycats)
 # With AFLP data, it is often necessary to include more markers for resolution
 data(Aeut)
 Ageno <- genotype_curve(Aeut)
+# Trendlines: you can add a smoothed trendline with geom_smooth()
+library("ggplot2")
+p <- last_plot()
+p + geom_smooth()
 
 # Many microsatellite data sets have hypervariable markers
 data(microbov)
@@ -60,7 +67,18 @@ mgeno <- geotype_curve(microbov)
 
 # This data set has been pre filtered
 data(monpop)
-mongeno <- genotype_curve(monpop)}
+mongeno <- genotype_curve(monpop)
+
+# Here, we add a curve and a title for publication
+p <- last_plot()
+mytitle <- expression(paste("Genotype Accumulation Curve for ", 
+                            italic("M. fructicola")))
+p + geom_smooth() + 
+  theme_bw() + 
+  theme(text = element_text(size = 12, family = "serif")) +
+  theme(title = element_text(size = 14)) +
+  ggtitle(mytitle)
+}
 }
 \author{
 Zhian N. Kamvar

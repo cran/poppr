@@ -77,7 +77,7 @@ setMethod(
     # Taking Names
     locnall         <- x@loc.n.all[j]
     allnames        <- x@all.names[j]
-    names(allnames) <- names(x@all.names)[1:length(j)]
+    names(allnames) <- names(x@all.names)[seq_along(allnames)]
     names(locnall)  <- names(allnames)
     alllist         <- slot(x, "alllist")[j]
     indices         <- unlist(alllist)
@@ -92,7 +92,7 @@ setMethod(
     slot(x, "loc.n.all") <- locnall
     slot(x, "all.names") <- allnames
     slot(x, "alllist")   <- .Call("expand_indices", cumsum(locnall), 
-                                  length(j), PACKAGE = "poppr")
+                                  length(alllist), PACKAGE = "poppr")
     slot(x, "names")     <- slot(x, "names")[i]
     return(x)
   }
@@ -157,7 +157,7 @@ setMethod(
     }
     num_alleles                <- slot(gen, "loc.n.all")
     num_loci                   <- length(num_alleles)
-    slot(.Object, "tab")       <- tab(gen, NA.method = na, freq = freq)     
+    slot(.Object, "tab")       <- tab(gen, NA.method = na, freq = freq)
     slot(.Object, "loc.fac")   <- slot(gen, "loc.fac")
     slot(.Object, "loc.n.all") <- num_alleles  
     slot(.Object, "all.names") <- slot(gen, "all.names") 
@@ -174,6 +174,30 @@ setMethod(
   signature = "bootgen",
   definition = function(x, freq = TRUE){ # freq is a dummy argument
     return(x@tab)
+  })
+
+#==============================================================================#
+#' @export
+#' @rdname coercion-methods
+#' @param bg a bootgen object
+#' @aliases bootgen2genind,bootgen-method
+#' @docType methods
+#==============================================================================#
+bootgen2genind <- function(bg){
+  standardGeneric("bootgen2genind")
+}
+
+#' @export
+setGeneric("bootgen2genind")
+
+setMethod(
+  f = "bootgen2genind",
+  signature = "bootgen",
+  definition = function(bg){
+    xtab <- tab(bg)
+    if (is.numeric(xtab)) xtab[] <- as.integer(xtab*bg@ploidy)
+    res <- new("genind", tab = xtab)
+    return(res)
   })
 
 ################################################################################
@@ -248,9 +272,15 @@ setMethod(
     if (missing(j)) j <- TRUE
     x@replen    <- x@replen[j]
     x@ind.names <- x@ind.names[i]
-    cols        <- rep(1:ncol(x), each = x@ploidy)
-    replacement <- vapply(j, function(ind) which(cols == ind), 1:x@ploidy)
-    x@mat       <- x@mat[i, as.vector(replacement), drop = FALSE]
+    cols        <- rep(seq(ncol(x)), each = x@ploidy)
+    if (length(j) == 1 && is.logical(j)){
+      replacement <- j
+    } else if (is.logical(j)){
+      replacement <- rep(j, each = x@ploidy)
+    } else {
+      replacement <- vapply(j, function(ind) which(cols == ind), 1:x@ploidy)
+    }
+    x@mat <- x@mat[i, as.vector(replacement), drop = FALSE]
     return(x)
   }
 )
@@ -302,14 +332,16 @@ setMethod(
   signature(x = "snpclone", i = "ANY", j = "ANY", drop = "ANY"),
   definition = function(x, i, j, ..., drop = FALSE){
     if (missing(i)) i <- TRUE
-    ismlgclass <- "MLG" %in% class(x@mlg)
 
-    if (ismlgclass){
-      mlg <- x@mlg[i, all = TRUE]
-    } else {
-      mlg <- x@mlg[i]
-    }
-    x <- callNextMethod(x = x, i = i, j = j, ..., drop = drop)
+    # handle MLG indices
+    ismlgclass <- inherits(x@mlg, "MLG")
+    # Tue Sep 27 12:08:37 2016 ------------------------------
+    # Methods for subsetting genind object by sample name currently don't exist
+    i          <- handle_mlg_index(i, x)
+    mlg        <- if (ismlgclass) x@mlg[i, all = TRUE] else x@mlg[i]
+    
+    # Subset data; replace MLGs    
+    x     <- callNextMethod(x = x, i = i, j = j, ..., drop = drop)
     x@mlg <- mlg
     return(x)
   })
@@ -516,27 +548,23 @@ setMethod(
   definition = function(x, i, j, ..., mlg.reset = FALSE, drop = FALSE){
     if (missing(i)) i <- TRUE
     newi <- i
-    ## HANDLE 'POP'
+    # Handling populations. This takes precedence over sample subsetting.
     dots <- list(...)
     if (any(names(dots) == "pop")){
-      pop <- dots[["pop"]]
-      if (!is.null(pop) && !is.null(pop(x))){
-        if (is.factor(pop)) pop <- as.character(pop)
-        if (!is.character(pop)) pop <- popNames(x)[pop]
-        newi <- pop(x) %in% pop
-      }      
+      newi <- handle_pops_index(dots[["pop"]], x)
     }
-    x     <- callNextMethod(x = x, i = i, j = j, ..., drop = drop)
+    mlgi <- handle_mlg_index(newi, x)
+    
+    x    <- callNextMethod(x = x, i = i, j = j, ..., drop = drop)
     
     if (!mlg.reset){
-      if (is(x@mlg, "MLG")){
-        x@mlg <- x@mlg[newi, all = TRUE]
+      if (inherits(x@mlg, "MLG")){
+        x@mlg <- x@mlg[mlgi, all = TRUE]
       } else {
-        x@mlg <- x@mlg[newi]
+        x@mlg <- x@mlg[mlgi]
       }
-      
     } else {
-      if (class(x@mlg)[1] != "MLG"){
+      if (!inherits(x@mlg, "MLG")){
         x@mlg <- mlg.vector(x, reset = TRUE)
       } else {
         x@mlg <- new("MLG", mlg.vector(x, reset = TRUE))
@@ -545,7 +573,6 @@ setMethod(
     return(x)
   }
 )
-
 #==============================================================================#
 #' @rdname genclone-method
 #' @param object a genclone object
@@ -607,12 +634,12 @@ setMethod(
     if (strata == 0) popstrata <- "strata."
     popdef  <- ifelse(npop > 0, "defined -", "defined.")
     cat("Population information:\n\n")
-    cat("", ltab[4], strata, popstrata, stratanames, fill = TRUE)
+    cat("", ltab[4], strata, popstrata, paste(stratanames, collapse = ", "), fill = TRUE)
     if (!is.null(object@hierarchy)){
       cat("", ltab[5], "1", "hierarchy -", 
           paste(object@hierarchy, collapse = ""), fill = TRUE)
     }
-    cat("", ltab[6], npop, "populations", popdef, pops, fill = TRUE)
+    cat("", ltab[6], npop, "populations", popdef, paste(pops, collapse = ", "), fill = TRUE)
     
   })
 
@@ -716,6 +743,7 @@ setMethod(
 #'   
 #' @seealso \code{\link{splitStrata}}, \code{\linkS4class{genclone}},
 #'   \code{\link{read.genalex}}
+#'   \code{\link{aboot}}
 #' @author Zhian N. Kamvar
 #' @examples
 #' data(Aeut)
@@ -724,6 +752,11 @@ setMethod(
 #' Aeut.gc
 #' Aeut.gi <- genclone2genind(Aeut.gc)
 #' Aeut.gi
+#' data(nancycats)
+#' nan.bg  <- new("bootgen", nancycats[pop = 9])
+#' nan.bg
+#' nan.gid <- bootgen2genind(nan.bg)
+#' nan.gid
 #==============================================================================#
 as.genclone <- function(x, ..., mlg, mlgclass = TRUE){
   standardGeneric("as.genclone")

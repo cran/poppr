@@ -122,6 +122,7 @@
 #'   \code{\link{prevosti.dist}} \code{\link{diss.dist}} 
 #'   \code{\link{bruvo.boot}} \code{\link[ape]{boot.phylo}} 
 #'   \code{\link[adegenet]{dist.genpop}} \code{\link{dist}}
+#'   \code{\link{bootgen2genind}} \code{\linkS4class{bootgen}}
 #'   
 #' @export
 #' @keywords bootstrap
@@ -137,10 +138,30 @@
 #' 
 #' set.seed(9999)
 #' # Generate a tree using custom distance
-#' bindist <- function(x) dist(x$tab, method = "binary")
+#' bindist <- function(x) dist(tab(x), method = "binary")
 #' binnan <- aboot(nan9, dist = bindist)
 #' 
 #' \dontrun{
+#' # Distances from other packages.
+#' #
+#' # Sometimes, distance functions from other packages will have the constraint
+#' # that the incoming data MUST be genind. Internally, aboot uses the 
+#' # bootgen class ( class?bootgen ) to shuffle loci, and will throw an error
+#' # The function bootgen2genind helps fix that. Here's an example of a function
+#' # that expects a genind class from above
+#' bindist <- function(x){
+#'   stopifnot(is.genind(x))
+#'   dist(tab(x), method = "binary")
+#' }
+#' #
+#' # Fails:
+#' # aboot(nan9, dist = bindist)
+#' ## Error: is.genind(x) is not TRUE
+#' #
+#' # Add bootgen2genind to get it working!
+#' # Works:
+#' aboot(nan9, dist = function(x) bootgen2genind(x) %>% bindist)
+#' 
 #' # AFLP data
 #' data(Aeut)
 #' 
@@ -212,12 +233,12 @@ aboot <- function(x, strata = NULL, tree = "upgma", distance = "nei.dist",
     }
     distname <- as.character(substitute(distance))
     if (length(distname) == 1 && distname %in% "diss.dist"){
-      xboot <- new("bootgen", x, na = missing, freq = FALSE)
-      if (!is.integer(xboot@tab)){
-        otab <- xboot@tab
-        xboot@tab <- matrix(as.integer(otab), nrow = nrow(otab),
-                            ncol = ncol(otab), dimnames = dimnames(otab))
+      if (missing == "mean"){
+        missing <- "asis"
+        warning("missing = 'mean' is incompatible with diss.dist(), setting missing to 'asis'", 
+                call. = FALSE)
       }
+      xboot <- new("bootgen", x, na = missing, freq = FALSE)
     } else {
       xboot <- new("bootgen", x, na = missing, freq = TRUE)
     }
