@@ -37,6 +37,7 @@
 #include <Rinternals.h>
 #include <Rdefines.h>
 #include <R.h>
+#include <R_ext/Utils.h>
 #include <math.h>
 #include <time.h>
 #include <string.h>
@@ -59,12 +60,14 @@ void genome_loss_calc(int *genos, int nalleles, int *perm_array, int woo,
 		int *loss, int *add, int *zero_ind, int curr_zero, int zeroes, 
 		int miss_ind, int curr_allele, double *genome_loss_sum, 
 		int *loss_tracker);
+/*
+ * UNUSED FUNCTIONS
 void fill_short_geno(int *genos, int nalleles, int *perm_array, int *woo, 
 		int *loss, int *add, int zeroes, int *zero_ind, int curr_zero, 
 		int miss_ind, int *replacement, int inds, int curr_ind, double *res, 
 		int *tracker);
 void print_distmat(double** dist, int* genos, int p);
-		
+*/		
 		
 
 /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -82,17 +85,18 @@ SEXP pairwise_covar(SEXP pair_vec)
 	int count;
 	SEXP Rout;
 	I = length(pair_vec);
-	pair_vec = coerceVector(pair_vec, REALSXP);
+	PROTECT(pair_vec = coerceVector(pair_vec, REALSXP));
 	PROTECT(Rout = allocVector(REALSXP, (I*(I-1)/2) ));
 	count = 0;
 	for(i = 0; i < I-1; i++)
 	{
+		R_CheckUserInterrupt();
 		for(j = i+1; j < I; j++)
 		{
 			REAL(Rout)[count++] = sqrt(REAL(pair_vec)[i] * REAL(pair_vec)[j]);
 		}
 	}
-	UNPROTECT(1);
+	UNPROTECT(2); // pair_vec; Rout
 	return Rout;
 }
 /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -123,6 +127,7 @@ SEXP pairdiffs(SEXP freq_mat)
 
 	for(i = 0; i < rows-1; i++)
 	{
+		R_CheckUserInterrupt();
 		for(j = i+1; j < rows; j++)
 		{
 			val = 0;
@@ -225,7 +230,7 @@ SEXP bruvo_distance(SEXP bruvo_mat, SEXP permutations, SEXP alleles, SEXP m_add,
 	ploidy = INTEGER(coerceVector(alleles, INTSXP))[0];
 	loss = asLogical(m_loss);
 	add = asLogical(m_add);
-	bruvo_mat = coerceVector(bruvo_mat, INTSXP);
+	PROTECT(bruvo_mat = coerceVector(bruvo_mat, INTSXP));
 	perm = INTEGER(coerceVector(permutations, INTSXP));
 	PROTECT(Rval = allocMatrix(REALSXP, rows*(rows-1)/2, cols/ploidy));
 	PROTECT(pair_matrix = allocVector(INTSXP, 2*ploidy));
@@ -235,6 +240,7 @@ SEXP bruvo_distance(SEXP bruvo_mat, SEXP permutations, SEXP alleles, SEXP m_add,
 	{
 		for(i = 0; i < rows - 1; i++)
 		{
+			R_CheckUserInterrupt(); // in case the user wants to quit
 			for(allele = 0; allele < ploidy; allele++) 
 			{
 				clm = (allele + locus)*rows;
@@ -251,7 +257,7 @@ SEXP bruvo_distance(SEXP bruvo_mat, SEXP permutations, SEXP alleles, SEXP m_add,
 			}
 		}
 	}
-	UNPROTECT(2);
+	UNPROTECT(3); // bruvo_mat; Rval; pair_matrix
 	return Rval;
 }
 
@@ -365,6 +371,7 @@ polysat_bruvo() == poppr_bruvo()
 ==============================================================================*/
 double bruvo_dist(int *in, int *nall, int *perm, int *woo, int *loss, int *add)
 {
+	// R_CheckUserInterrupt();
 	int i; 
 	int j; 
 	int counter = 0;    // counter used for building arrays
@@ -662,6 +669,7 @@ void genome_add_calc(int perms, int alleles, int *perm, double **dist,
 	int zeroes, int *zero_ind, int curr_zero, int miss_ind, int *replacement, 
 	int inds, int curr_ind, double *genome_add_sum, int *tracker)
 {
+	// R_CheckUserInterrupt();
 	int i;
 	int j;
 	//==========================================================================
@@ -749,6 +757,7 @@ void genome_loss_calc(int *genos, int nalleles, int *perm_array, int woo,
 		int miss_ind, int curr_allele, double *genome_loss_sum, 
 		int *loss_tracker)
 {
+	// R_CheckUserInterrupt();
 	int i; 
 	int full_ind;
 	full_ind = 1 + (0 - miss_ind);
@@ -782,24 +791,29 @@ void genome_loss_calc(int *genos, int nalleles, int *perm_array, int woo,
 }
 
 /*==============================================================================
-* Notes for fill_short_geno: This will act much in the same way as
-* genome_loss_calc, except it will fill the shorter genotype with all possible
-* combinations of that genotype before sending it through bruvo_dist with
-* one full genotype. 
-*
-* Things that need to be set before running this:
-* - replacement is an array of the non-missing alleles from the shorter 
-*   genotype.
-* - inds is the number of non-missing alleles.
-* - *res will be minn
-* - *tracker will count the number of iterations this goes through in order
-*   to get an average. 
-==============================================================================*/
+ * 
+ * This function is currently unused.
+ * 
+ * 
+ * Notes for fill_short_geno: This will act much in the same way as
+ * genome_loss_calc, except it will fill the shorter genotype with all possible
+ * combinations of that genotype before sending it through bruvo_dist with
+ * one full genotype. 
+ *
+ * Things that need to be set before running this:
+ * - replacement is an array of the non-missing alleles from the shorter 
+ *   genotype.
+ * - inds is the number of non-missing alleles.
+ * - *res will be minn
+ * - *tracker will count the number of iterations this goes through in order
+ *   to get an average. 
+==============================================================================
 void fill_short_geno(int *genos, int nalleles, int *perm_array, int *woo, 
 		int *loss, int *add, int zeroes, int *zero_ind, int curr_zero, 
 		int miss_ind, int *replacement, int inds, int curr_ind, double *res, 
 		int *tracker)
 {
+	// R_CheckUserInterrupt();
 	int i; //full_ind;
 	genos[miss_ind*nalleles + zero_ind[curr_zero]] = 
 		genos[miss_ind*nalleles + replacement[curr_ind]];
@@ -829,7 +843,7 @@ void fill_short_geno(int *genos, int nalleles, int *perm_array, int *woo,
 	}
 	return;
 }
-
+*/
 
 
 /*
@@ -881,6 +895,9 @@ double mindist(int perms, int alleles, int *perm, double **dist)
 	return minn;
 }
 
+/* Helper function to print a distance matrix
+ * mainly used for debugging
+
 void print_distmat(double** dist, int* genos, int p)
 {
 	int i;
@@ -904,3 +921,4 @@ void print_distmat(double** dist, int* genos, int p)
 	return;
 }
 
+*/

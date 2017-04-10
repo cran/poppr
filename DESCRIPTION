@@ -1,8 +1,8 @@
 Package: poppr
 Type: Package
 Title: Genetic Analysis of Populations with Mixed Reproduction
-Version: 2.3.0
-Date: 2016-11-16
+Version: 2.4.0
+Date: 2017-04-09
 Authors@R: c(person(c("Zhian", "N."), "Kamvar", role = c("cre", "aut"),
     email = "zkamvar@gmail.com"),
     person(c("Javier", "F."), "Tabima", role = "aut",
@@ -22,8 +22,7 @@ Authors@R: c(person(c("Zhian", "N."), "Kamvar", role = c("cre", "aut"),
 Maintainer: Zhian N. Kamvar <zkamvar@gmail.com>
 Encoding: UTF-8
 URL: http://github.com/grunwaldlab/poppr,
-        http://grunwaldlab.github.io/Population_Genetics_in_R/,
-        http://grunwaldlab.cgrb.oregonstate.edu/poppr-r-package-population-genetics
+        http://grunwaldlab.github.io/Population_Genetics_in_R/
 Description: Population genetic analyses for hierarchical analysis of partially
     clonal populations built upon the architecture of the 'adegenet' package.
 MailingList: http://groups.google.com/group/poppr
@@ -36,9 +35,9 @@ Suggests: testthat, knitr, rmarkdown, knitcitations, polysat, poweRlaw,
         cowplot
 License: GPL-2 | GPL-3
 VignetteBuilder: knitr
-RoxygenNote: 5.0.1
+RoxygenNote: 6.0.1
 NeedsCompilation: yes
-Packaged: 2016-11-23 04:11:40 UTC; zhian
+Packaged: 2017-04-09 22:22:46 UTC; zhian
 Author: Zhian N. Kamvar [cre, aut],
   Javier F. Tabima [aut],
   Sydney E. Everhart [ctb, dtc],
@@ -48,4 +47,4 @@ Author: Zhian N. Kamvar [cre, aut],
   Brian J. Knaus [ctb],
   Niklaus J. Grunwald [ths]
 Repository: CRAN
-Date/Publication: 2016-11-23 17:45:12
+Date/Publication: 2017-04-10 13:17:16 UTC

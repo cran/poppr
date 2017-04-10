@@ -310,7 +310,7 @@ poppr <- function(dat, total = TRUE, sublist = "ALL", blacklist = NULL,
   if (inherits(dat, c("genlight", "snpclone"))){
     msg <- "The poppr function will not work with genlight or snpclone objects"
     msg <- paste0(msg, "\nIf you want to calculate genotypic diversity, use ",
-                  "the function diversity_table().")
+                  "the function diversity_stats().")
     stop(msg)
   }
   quiet <- should_poppr_be_quiet(quiet)
@@ -439,7 +439,7 @@ poppr <- function(dat, total = TRUE, sublist = "ALL", blacklist = NULL,
                  namelist = list(File = namelist$File, population = "Total"),
                  hist = plot
                 )
-    
+    IaList <- if (sample > 0) IaList$index else IaList
     Iout <- as.data.frame(list(
       Pop = "Total",
       N = N.vec,

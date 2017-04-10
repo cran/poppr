@@ -54,6 +54,23 @@ A009	7_09_BB	224	97	159	160	133	156	126	119	147	227	261	134
 A006	7_09_BB	224	97	159	160	133	156	126	119	147	235	261	134
 A013	7_09_BB	224	97	163	160	133	156	126	119	147	235	257	134"
 
+hapdip <- "6	4	1	4											
+			7_09_BB											
+Ind	Pop	CHMFc4	CHMFc5	CHMFc12	SEA	SED	SEE	SEG	SEI	SEL	SEN	SEP	SEQ
+A011	7_09_BB	224	0	159	0	133	0	126	0	147		257	0
+A009	7_09_BB	224	97	159	160	133	156	126	119	147	227	261	134
+A006	7_09_BB	224	97	159	160	133	156	126	119	147	235	261	134
+A013	7_09_BB	224	97	163	160	133	156	126	119	147	235	257	134"
+
+bad_genalex <- "1	6	1	6
+Ind	Pop	CHMFc4	
+A004	7_09_BB	224	 
+A002	7_09_BB	224	 
+A011	7_09_BB	224	 
+A009	7_09_BB	224	 
+A006	7_09_BB	224	 
+A013	7_09_BB	224	 "
+
 test_that("basic text connections work", {
 	gen <- read.genalex(textConnection(y), sep = "\t")
 	expect_equivalent(tab(gen), tab(monpop[1:6, drop = TRUE]))
@@ -84,6 +101,38 @@ test_that("missing cells are converted to zeroes for polyploids", {
   expect_equivalent(nLoc(gen), 3L)
   expect_output(show(gen), "tetraploid")
   expect_output(show(recode_polyploids(gen, newploidy = TRUE)), "triploid \\(1\\) and tetraploid \\(5\\)")
+})
+
+test_that("haplodiploids can be imported correctly", {
+  skip_on_cran()
+  gen <- read.genalex(textConnection(hapdip), sep = "\t")
+  expect_equivalent(nLoc(gen), 6L)
+  expect_output(show(gen), "diploid")
+  expect_output(show(recode_polyploids(gen, newploidy = TRUE)), "haploid \\(1\\) and diploid \\(3\\)")
+})
+
+test_that("duplicate columns are flagged and fixed", {
+  skip_on_cran()
+  f <- "4,5,1,5,,,,,,
+,,,Admix,,,,,,
+Ind,Pop,RM127, ,RM22, ,RM22, ,RM127, 
+1,Admix,210,210,200,200,195,195,130,110
+2,Admix,230,230,185,185,200,200,110,120
+3,Admix,210,210,200,200,195,195,130,130
+4,Admix,230,230,200,200,195,195,130,130
+5,Admix,210,230,200,200,200,200,120,120"
+  expect_warning(read.genalex(textConnection(f)), "col 7: RM22 -> RM22_1")
+})
+
+test_that("improperly-formatted data causes an error", {
+  skip_on_cran()
+  msg <- "^.+?6 individuals.+?5 rows.+?Please inspect "
+  tcmsg  <- paste0(msg, "textConnection\\(bad_genalex\\).+?$")
+  expect_error(read.genalex(textConnection(bad_genalex), sep = "\t"), tcmsg)
+  f <- tempfile()
+  writeLines(bad_genalex, f)
+  fmsg <- paste0(msg, f, ".+?$")
+  expect_error(read.genalex(f, sep = "\t"), fmsg)
 })
 
 context("Data export tests")
