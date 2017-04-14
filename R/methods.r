@@ -43,11 +43,7 @@
 #!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!#
 #==============================================================================#
 
-################################################################################
-#------------------------------------------------------------------------------#
-# BOOTGEN METHODS
-#------------------------------------------------------------------------------#
-################################################################################
+# bootgen methods ---------------------------------------------------------
 
 #==============================================================================#
 #' Methods used for the bootgen object. 
@@ -200,11 +196,8 @@ setMethod(
     return(res)
   })
 
-################################################################################
-#------------------------------------------------------------------------------#
-# BRUVOMAT METHODS
-#------------------------------------------------------------------------------#
-################################################################################
+
+# bruvomat methods --------------------------------------------------------
 
 #==============================================================================#
 #' @rdname bruvomat-methods
@@ -286,16 +279,14 @@ setMethod(
 )
 
 
-################################################################################
-#------------------------------------------------------------------------------#
-# SNPCLONE METHODS
-#------------------------------------------------------------------------------#
-################################################################################
+# snpclone methods --------------------------------------------------------
+
 #==============================================================================#
 #' @export
 #' @rdname is.clone
 #' @examples
-#' (sc <- as.snpclone(glSim(100, 1e3, ploid=2)))
+#' (sc <- as.snpclone(glSim(100, 1e3, ploid=2, parallel = FALSE), 
+#'                    parallel = FALSE, n.cores = 1L))
 #' is.snpclone(sc)
 #==============================================================================#
 is.snpclone <- function(x){
@@ -489,11 +480,9 @@ setMethod(
     }
     return(res)
   })
-################################################################################
-#------------------------------------------------------------------------------#
-# GENCLONE METHODS
-#------------------------------------------------------------------------------#
-################################################################################
+
+# genclone methods --------------------------------------------------------
+
 #==============================================================================#
 #' Check for validity of a genclone or snpclone object
 #' 
@@ -844,6 +833,9 @@ setMethod(
     names(listx) <- locNames(x)
     return(listx)
   })
+
+
+# multilocus lineage methods ----------------------------------------------
 
 #==============================================================================#
 #' Access and manipulate multilocus lineages.
@@ -1246,12 +1238,9 @@ setMethod(
 #'   \code{\link{bitwise.dist}} for snpclone objects. A matrix or table
 #'   containing distances between individuals (such as the output of 
 #'   \code{\link{rogers.dist}}) is also accepted for this parameter.
-#' @param threads The maximum number of parallel threads to be used within this 
-#'   function. A value of 0 (default) will attempt to use as many threads as 
-#'   there are available cores/CPUs. In most cases this is ideal. A value of 1 
-#'   will force the function to run serially, which may increase stability on 
-#'   some systems. Other values may be specified, but should be used with 
-#'   caution.
+#' @param threads (unused) Previously, this was the maximum number of parallel 
+#'  threads to be used within this function. Default is 1 indicating that this
+#'  function will run serially. Any other number will result in a warning.
 #' @param stats a character vector specifying which statistics should be
 #'   returned (details below). Choices are "MLG", "THRESHOLDS", "DISTANCES",
 #'   "SIZES", or "ALL". If choosing "ALL" or more than one, a named list will be
@@ -1403,7 +1392,7 @@ setMethod(
 #==============================================================================#
 mlg.filter <- function(pop, threshold=0.0, missing="asis", memory=FALSE, 
                        algorithm="farthest_neighbor", 
-                       distance="diss.dist", threads=0, stats="MLGs", ...){
+                       distance="diss.dist", threads=1L, stats="MLGs", ...){
   standardGeneric("mlg.filter")
 }
 
@@ -1415,7 +1404,7 @@ setMethod(
   signature(pop = "genind"),
   definition = function(pop, threshold=0.0, missing="asis", memory=FALSE,
                         algorithm="farthest_neighbor", distance="diss.dist", 
-                        threads=0, stats="MLGs", ...){
+                        threads=1L, stats="MLGs", ...){
     the_call <- match.call()
     mlg.filter.internal(pop, threshold, missing, memory, algorithm, distance,
                         threads, stats, the_call, ... ) 
@@ -1427,7 +1416,7 @@ setMethod(
   signature(pop = "genlight"),
   definition = function(pop, threshold=0.0, missing="asis", memory=FALSE,
                         algorithm="farthest_neighbor", distance="bitwise.dist", 
-                        threads=0, stats="MLGs", ...){
+                        threads=1, stats="MLGs", ...){
     the_call <- match.call()
     mlg.filter.internal(pop, threshold, missing, memory, algorithm, distance,
                         threads, stats, the_call, ...) 
@@ -1439,7 +1428,7 @@ setMethod(
   signature(pop = "genclone"),
   definition = function(pop, threshold=0.0, missing="asis", memory=FALSE,
                         algorithm="farthest_neighbor", distance="diss.dist", 
-                        threads=0, stats="MLGs", ...){
+                        threads=1L, stats="MLGs", ...){
     the_call <- match.call()
     mlg.filter.internal(pop, threshold, missing, memory, algorithm, distance,
                         threads, stats, the_call, ...)   }
@@ -1450,7 +1439,7 @@ setMethod(
   signature(pop = "snpclone"),
   definition = function(pop, threshold=0.0, missing="asis", memory=FALSE,
                         algorithm="farthest_neighbor", distance="bitwise.dist", 
-                        threads=0, stats="MLGs", ...){
+                        threads=1L, stats="MLGs", ...){
     the_call <- match.call()
     mlg.filter.internal(pop, threshold, missing, memory, algorithm, distance,
                         threads, stats, the_call, ...) 
@@ -1469,7 +1458,7 @@ setMethod(
 #==============================================================================#
 "mlg.filter<-" <- function(pop, missing = "asis", memory = FALSE, 
                            algorithm = "farthest_neighbor", distance = "diss.dist",
-                           threads = 0, ..., value){
+                           threads = 1L, ..., value){
   standardGeneric("mlg.filter<-")
 }
 
@@ -1482,7 +1471,7 @@ setMethod(
   signature(pop = "genind"),
   definition = function(pop, missing = "asis", memory = FALSE, 
                         algorithm = "farthest_neighbor", distance = "diss.dist",
-                        threads = 0, ..., value){
+                        threads = 1L, ..., value){
     if (!is.genclone(pop)){
       the_warning <- paste("mlg.filter<- only has an effect on genclone",
                            "objects.\n", "If you want to utilize this",
@@ -1500,7 +1489,7 @@ setMethod(
   signature(pop = "genlight"),
   definition = function(pop, missing = "asis", memory = FALSE, 
                         algorithm = "farthest_neighbor", distance = "bitwise.dist",
-                        threads = 0, ..., value){
+                        threads = 1L, ..., value){
     if (!is.snpclone(pop)){
       the_warning <- paste("mlg.filter<- only has an effect on snpclone",
                            "objects.\n", "If you want to utilize this",
@@ -1519,7 +1508,7 @@ setMethod(
   signature(pop = "genclone"),
   definition = function(pop, missing = "asis", memory = FALSE, 
                        algorithm = "farthest_neighbor", distance = "diss.dist",
-                       threads = 0, ..., value){
+                       threads = 1L, ..., value){
     pop       <- callNextMethod()
     the_call  <- match.call()
     callnames <- names(the_call)
@@ -1596,7 +1585,7 @@ setMethod(
   signature(pop = "snpclone"),
   definition = function(pop, missing = "mean", memory = FALSE, 
                         algorithm = "farthest_neighbor", distance = "bitwise.dist",
-                        threads = 0, ..., value){
+                        threads = 1L, ..., value){
     pop       <- callNextMethod()
     the_call  <- match.call()
     callnames <- names(the_call)

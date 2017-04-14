@@ -705,6 +705,10 @@ pair_matrix <- function(pop, numLoci, np)
 rerange <- function(x){
   minx <- min(x, na.rm = TRUE)
   maxx <- max(x, na.rm = TRUE)
+  if (!is.finite(minx) || !is.finite(maxx)){
+    warning("non-finite values found for distances, returning 0.5")
+    return(rep(0.5, length(x)))
+  }
   if (minx < 0)
     x <- x + abs(minx)
     maxx <- maxx + abs(minx)
@@ -996,11 +1000,15 @@ bruvos_distance <- function(bruvomat, funk_call = match.call(), add = TRUE,
 # ## none
 #==============================================================================#
 match_replen_to_loci <- function(gid_loci, replen){
-  if (is.genind(gid_loci)){
-    gid_loci <- locNames(gid_loci)
-  }
+  # unnamed loci with the same length
   if (is.null(names(replen))){
+    if (is.character(gid_loci)){
+      names(replen) <- gid_loci # give them names
+    }
     return(replen)
+  } else if (!all(gid_loci %in% names(replen))){ # names don't match up
+    unmatched_repeats <- names(replen[!names(replen) %in% gid_loci])
+    stop(unmatched_loci_warning(unmatched_repeats, gid_loci), call. = FALSE)
   } else {
     return(replen[gid_loci])
   }
@@ -2871,4 +2879,20 @@ make_psex <- function(n_encounters, p_genotype, sample_ids = NULL, n_samples){
   out        <- dbinom(encounters, n_samples, p_genotype)
   names(out) <- sample_ids
   return(out)
+}
+
+cromulent_replen <- function(gid, replen){
+  the_loci <- locNames(gid)
+  if (length(replen) != nLoc(gid) && is.null(names(replen))){
+    msg <- mismatched_repeat_length_warning(replen, nLoc(gid))
+    stop(msg, call. = FALSE)
+  } else if (length(replen) < nLoc(gid)){
+    msg <- mismatched_repeat_length_warning(replen, nLoc(gid))
+    stop(msg, call. = FALSE)
+  } else if (length(replen) > nLoc(gid)){
+    msg <- trimmed_repeats_warning(replen, the_loci)
+    warning(msg, call. = FALSE, immediate. = TRUE)
+  } 
+  new_replen <- match_replen_to_loci(the_loci, replen)
+  return(new_replen)
 }
