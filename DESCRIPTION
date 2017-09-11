@@ -1,8 +1,8 @@
 Package: poppr
 Type: Package
 Title: Genetic Analysis of Populations with Mixed Reproduction
-Version: 2.4.1
-Date: 2017-04-13
+Version: 2.5.0
+Date: 2017-09-10
 Authors@R: c(person(c("Zhian", "N."), "Kamvar", role = c("cre", "aut"),
     email = "zkamvar@gmail.com"),
     person(c("Javier", "F."), "Tabima", role = "aut",
@@ -29,15 +29,15 @@ MailingList: http://groups.google.com/group/poppr
 BugReports: https://github.com/grunwaldlab/poppr/issues
 Depends: R (>= 2.15.1), adegenet (>= 2.0.0)
 Imports: stats, graphics, grDevices, utils, vegan, ggplot2, phangorn,
-        ape (>= 3.1-1), igraph, methods, ade4, pegas, reshape2, dplyr
-        (>= 0.4), boot, shiny, magrittr
+        ape (>= 3.1-1), igraph, methods, ade4, pegas, dplyr (>= 0.4),
+        rlang, boot, shiny, magrittr
 Suggests: testthat, knitr, rmarkdown, knitcitations, polysat, poweRlaw,
         cowplot
 License: GPL-2 | GPL-3
 VignetteBuilder: knitr
 RoxygenNote: 6.0.1
 NeedsCompilation: yes
-Packaged: 2017-04-13 15:45:48 UTC; zhian
+Packaged: 2017-09-10 23:44:09 UTC; zhian
 Author: Zhian N. Kamvar [cre, aut],
   Javier F. Tabima [aut],
   Sydney E. Everhart [ctb, dtc],
@@ -47,4 +47,4 @@ Author: Zhian N. Kamvar [cre, aut],
   Brian J. Knaus [ctb],
   Niklaus J. Grunwald [ths]
 Repository: CRAN
-Date/Publication: 2017-04-14 18:11:14 UTC
+Date/Publication: 2017-09-11 07:49:03 UTC
