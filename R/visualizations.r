@@ -269,6 +269,10 @@ poppr.plot <- function(sample, pval = c(Ia = 0.05, rbarD = 0.05),
 #'   graph produced can be plotted using igraph functions, or the entire object
 #'   can be plotted using the function \code{\link{plot_poppr_msn}}, which will
 #'   give the user a scale bar and the option to layout your data.
+#'   \subsection{node sizes}{
+#'   The area of the nodes are representative of the number of samples. Because
+#'   \pkg{igraph} scales nodes by radius, the node sizes in the graph are 
+#'   represented as the square root of the number of samples.}
 #'   \subsection{mlg.compute}{
 #'   Each node on the graph represents a different multilocus genotype. 
 #'   The edges on the graph represent genetic distances that connect the
@@ -315,7 +319,10 @@ poppr.plot <- function(sample, pval = c(Ia = 0.05, rbarD = 0.05),
 #' A.dist <- diss.dist(Aeut)
 #' 
 #' # Graph it.
-#' A.msn <- poppr.msn(Aeut, A.dist, gadj=15, vertex.label=NA)
+#' A.msn <- poppr.msn(Aeut, A.dist, gadj = 15, vertex.label = NA)
+#' 
+#' # Find the sizes of the nodes (number of individuals per MLL):
+#' igraph::vertex_attr(A.msn$graph, "size")^2
 #' 
 #' \dontrun{
 #' # Set subpopulation structure.
@@ -704,7 +711,7 @@ info_table <- function(gen, type = c("missing", "ploidy"), percent = TRUE, plot 
 greycurve <- function(data = seq(0, 1, length = 1000), glim = c(0,0.8), 
                       gadj = 3, gweight = 1, scalebar = FALSE){
   gadj <- ifelse(gweight == 1, gadj, -gadj)
-  adjustcurve(data, glim, correction=gadj, show = TRUE, scalebar = scalebar)
+  adjustcurve(data, glim, correction = gadj, show = TRUE, scalebar = scalebar)
 }
 
 
@@ -729,8 +736,8 @@ greycurve <- function(data = seq(0, 1, length = 1000), glim = c(0,0.8),
 #' @inheritParams poppr.msn
 #'   
 #'   
-#'   
-#' @param nodebase a \code{numeric} indicating what base logarithm should be
+#' @param nodescale a \code{numeric} indicating how to scale the node sizes (scales by area).
+#' @param nodebase \strong{deprecated} a \code{numeric} indicating what base logarithm should be
 #'   used to scale the node sizes. Defaults to 1.15. See details.
 #'   
 #' @param nodelab an \code{integer} specifying the smallest size of node to 
@@ -766,6 +773,10 @@ greycurve <- function(data = seq(0, 1, length = 1000), glim = c(0,0.8),
 #' @param pop.leg if \code{TRUE}, a legend indicating the populations will
 #'   appear in the top right corner of the graph, but will not overlap. Setting
 #'   \code{pop.leg = FALSE} disables this legend. See details.
+#' 
+#' @param size.leg if \code{TRUE}, a legend displyaing the number of samples per
+#'   node will appear either below the population legend or in the top right
+#'   corner of the graph. Setting \code{size.leg = FALSE} disables this legend.
 #'   
 #' @param scale.leg if \code{TRUE}, a scale bar indicating the distance will
 #'   appear under the graph. Setting \code{scale.leg = FALSE} suppresses this
@@ -785,30 +796,31 @@ greycurve <- function(data = seq(0, 1, length = 1000), glim = c(0,0.8),
 #'   The source data must contain the same population structure as the graph. 
 #'   Every other parameter has a default setting.
 #'   
-#'   \subsection{Parameter details}{ \itemize{ \item \code{inds} By default, the
-#'   graph will label each node (circle) with all of the samples (individuals)
-#'   that are contained within that node. As each node represents a single
-#'   multilocus genotype (MLG) or individuals (n >= 1), this argument is
-#'   designed to allow you to selectively label the nodes based on query of
-#'   sample name or MLG number. If the option \code{mlg = TRUE}, the multilocus
-#'   genotype assignment will be used to label the node. If you do not want to
-#'   label the nodes by individual or multilocus genotype, simply set this to a
-#'   name that doesn't exist in your data. \item \code{nodebase} The nodes
-#'   (circles) on the graph represent different multilocus genotypes. The size
-#'   of the nodes represent the number of individuals. Since nodes can contain
-#'   any number of individuals, the size of the nodes are transformed on a log
-#'   base 1.15 scale. This allows the large nodes not to overwhelm the graph. If
-#'   your nodes are too big, you can use this to adjust the log base so that
-#'   your nodes are represented. \item \code{nodelab} If a node is not labeled
-#'   by individual, this will label the size of the nodes greater than or equal
-#'   to this value. If you don't want to label the size of the nodes, simply set
-#'   this to a very high number. \item \code{cutoff} This is useful for when you
-#'   want to investigate groups of multilocus genotypes separated by a specific
-#'   distance or if you have two distinct populations and you want to physically
-#'   separate them in your network. \item \code{beforecut} This is an indicator
-#'   useful if you want to maintain the same position of the nodes before and
-#'   after removing edges with the \code{cutoff} argument. This works best if
-#'   you set a seed before you run the function.}}
+#'   \subsection{Parameter details}{ \itemize{ 
+#'   \item \code{inds} By default, the graph will label each node (circle) with
+#'   all of the samples (individuals) that are contained within that node. As
+#'   each node represents a single multilocus genotype (MLG) or individuals (n
+#'   >= 1), this argument is designed to allow you to selectively label the
+#'   nodes based on query of sample name or MLG number. If the option \code{mlg
+#'   = TRUE}, the multilocus genotype assignment will be used to label the node.
+#'   If you do not want to label the nodes by individual or multilocus genotype,
+#'   simply set this to a name that doesn't exist in your data.
+#'   \item \code{nodescale} The nodes (circles) on the graph represent different
+#'   multilocus genotypes. The area of the nodes represent the number of
+#'   individuals. Setting nodescale will scale the area of the nodes.
+#'   \item \code{nodelab} If a node is not labeled by individual, this will
+#'   label the size of the nodes greater than or equal to this value. If you
+#'   don't want to label the size of the nodes, simply set this to a very high
+#'   number.
+#'   \item \code{cutoff} This is useful for when you want to investigate groups
+#'   of multilocus genotypes separated by a specific distance or if you have two
+#'   distinct populations and you want to physically separate them in your
+#'   network.
+#'   \item \code{beforecut} This is an indicator useful if you want to maintain
+#'   the same position of the nodes before and after removing edges with the
+#'   \code{cutoff} argument. This works best if you set a seed before you run
+#'   the function.
+#'   }}
 #'   
 #'   \subsection{mlg.compute}{
 #'   Each node on the graph represents a different multilocus genotype. 
@@ -919,7 +931,7 @@ greycurve <- function(data = seq(0, 1, length = 1000), glim = c(0,0.8),
 #'                inds = "ALL",
 #'                mlg = TRUE,
 #'                gadj = 9,
-#'                nodebase = 1.75,
+#'                nodescale = 5,
 #'                palette = other(Pram)$comparePal,
 #'                cutoff = NULL,
 #'                quantiles = FALSE,
@@ -932,7 +944,7 @@ greycurve <- function(data = seq(0, 1, length = 1000), glim = c(0,0.8),
 #'                inds = "ALL",
 #'                mlg = TRUE,
 #'                gadj = 9,
-#'                nodebase = 1.75,
+#'                nodescale = 5,
 #'                palette = other(Pram)$comparePal,
 #'                cutoff = NULL,
 #'                quantiles = FALSE,
@@ -940,14 +952,29 @@ greycurve <- function(data = seq(0, 1, length = 1000), glim = c(0,0.8),
 #' }
 #==============================================================================#
 #' @importFrom igraph layout.auto delete.edges
-plot_poppr_msn <- function(x, poppr_msn, gscale = TRUE, gadj = 3, 
+plot_poppr_msn <- function(x,
+                           poppr_msn,
+                           gscale = TRUE,
+                           gadj = 3,
                            mlg.compute = "original",
-                           glim = c(0, 0.8), gweight = 1, wscale = TRUE, 
-                           nodebase = 1.15, nodelab = 2, inds = "ALL", 
-                           mlg = FALSE, quantiles = TRUE, cutoff = NULL, 
-                           palette = NULL, layfun = layout.auto, 
-                           beforecut = FALSE, pop.leg = TRUE, scale.leg = TRUE, 
-                           ...){
+                           glim = c(0, 0.8),
+                           gweight = 1,
+                           wscale = TRUE,
+                           nodescale = 10,
+                           nodebase = NULL,
+                           nodelab = 2,
+                           inds = "ALL",
+                           mlg = FALSE,
+                           quantiles = TRUE,
+                           cutoff = NULL,
+                           palette = NULL,
+                           layfun = layout.auto,
+                           beforecut = FALSE,
+                           pop.leg = TRUE,
+                           size.leg = TRUE,
+                           scale.leg = TRUE,
+                           ...) {
+  
   if (!is(x, "genlight") && !is.genind(x)){
     stop(paste(substitute(x), "is not a genind or genclone object."))
   }
@@ -1041,19 +1068,30 @@ plot_poppr_msn <- function(x, poppr_msn, gscale = TRUE, gadj = 3,
   }
   if (any(is.na(labs))){
     sizelabs <- V(poppr_msn$graph)$size
-    sizelabs <- ifelse(sizelabs >= nodelab, sizelabs, NA)
+    sizelabs <- ifelse(sizelabs >= nodelab, sizelabs * sizelabs, NA)
     labs     <- ifelse(is.na(labs), sizelabs, labs)
   }
 
-  # Change the size of the vertices to a log scale.
-  if (nodebase == 1){
-    nodebase <- 1.15
-    nodewarn <- paste0("Cannot set nodebase = 1:\n",
-      "Log base 1 is undefined, reverting to nodebase = 1.15")
-    warning(nodewarn)
+  if (!is.null(nodebase)){
+    warnw    <- min(.9 * getOption("width"), 80)
+    nodewarn <- paste("\n",
+                      "The parameter nodebase has been deprecated.",
+                      "It is currently being kept for backwards compatibility,",
+                      "but will be removed in a future version of poppr.",
+                      "\n\nPlease use the new parameter nodescale instead.")
+    nodewarn <- strwrap(nodewarn, width = warnw)
+    warning(paste(nodewarn, collapse = "\n"))
+    # Change the size of the vertices to a log scale.
+    if (nodebase == 1) {
+      nodebase <- 1.15
+      nodewarn <- paste0("Cannot set nodebase = 1:\n",
+        "Log base 1 is undefined, reverting to nodebase = 1.15")
+      warning(nodewarn)
+    }
+    vsize <- log(V(poppr_msn$graph)$size * V(poppr_msn$graph)$size, base = nodebase) + 3
+  } else {
+    vsize <- sqrt(V(poppr_msn$graph)$size * V(poppr_msn$graph)$size * nodescale)
   }
-  vsize <- log(V(poppr_msn$graph)$size, base = nodebase) + 3
-  
   # Plotting parameters.
   def.par <- par(no.readonly = TRUE)
   # Return top level plot to defaults.
@@ -1062,7 +1100,9 @@ plot_poppr_msn <- function(x, poppr_msn, gscale = TRUE, gadj = 3,
     graphics::par(def.par)
   })
   
-  if (!pop.leg & !scale.leg){
+  pop.leg <- pop.leg && !all(is.na(poppr_msn$populations))
+  
+  if (!pop.leg && !size.leg && !scale.leg) {
     plot.igraph(poppr_msn$graph, vertex.label = labs, vertex.size = vsize, 
                 layout = lay, ...)
   } else {
@@ -1070,38 +1110,66 @@ plot_poppr_msn <- function(x, poppr_msn, gscale = TRUE, gadj = 3,
     # Setting up the matrix for plotting. One Vertical panel of width 1 and height
     # 5 for the legend, one rectangular panel of width 4 and height 4.5 for the
     # graph, and one horizontal panel of width 4 and height 0.5 for the greyscale.
-    if (pop.leg && !all(is.na(poppr_msn$populations))){
-      if (scale.leg){
-        layout(matrix(c(1,2,1,3), ncol = 2, byrow = TRUE),
-               widths = c(1, 4), heights= c(4.5, 0.5))        
+    if (pop.leg || size.leg) {
+      if (scale.leg) {
+        mat <- matrix(c(1,4,
+                        3,2), 
+                      ncol = 2, 
+                      byrow = TRUE)
+        layout(mat, widths = c(1, 4), heights = c(4.5, 0.5))        
       } else {
-        layout(matrix(c(1, 2), nrow = 2), widths = c(1, 4))
+        layout(matrix(c(1, 2), ncol = 2), widths = c(1, 4))
       }
 
       # mar = bottom left top right
       
       ## LEGEND
       par(mar = c(0, 0, 1, 0) + 0.5)
+      a <- NULL
+      main <- if (pop.leg) 'POPULATION' else NULL
       too_many_pops   <- as.integer(ceiling(nPop(x)/30))
       pops_correction <- ifelse(too_many_pops > 1, -1, 1)
       yintersperse    <- ifelse(too_many_pops > 1, 0.51, 0.62)
-      graphics::plot(c(0, 2), c(0, 1), type = 'n', axes = F, xlab = '', ylab = '',
-           main = 'POPULATION')
-    
-      graphics::legend("topleft", bty = "n", cex = 1.2^pops_correction,
-             legend = poppr_msn$populations, fill = poppr_msn$color, border = NULL,
-             ncol = too_many_pops, x.intersp = 0.45, y.intersp = yintersperse)
+      graphics::plot(c(-1, 1), 
+                     c(-0.5, 0.5), 
+                     type = 'n', 
+                     axes = FALSE, 
+                     xlab = '', 
+                     ylab = '',
+                     main = main)
+      if (pop.leg) {
+        
+        a <- graphics::legend("topleft", 
+                              bty = "n", 
+                              cex = 1.2^pops_correction,
+                              legend = poppr_msn$populations, 
+                              fill = poppr_msn$color, 
+                              border = NULL,
+                              ncol = too_many_pops, 
+                              x.intersp = 0.45, 
+                              y.intersp = yintersperse)
+      }
+      if (size.leg) {
+        N <- V(poppr_msn$graph)$size * V(poppr_msn$graph)$size
+        make_circle_legend(a = a, 
+                           mlg_number = N, 
+                           scale = sqrt(nodescale), 
+                           cex = 1.2 ^ pops_correction,
+                           radmult = 4,
+                           xspace = 0.45,
+                           font = 2,
+                           pos = 0,
+                           x = 0,
+                           y = 0.55,
+                           txt = 0.05)
+      }
+
     } else {
-      graphics::layout(matrix(c(1,2), nrow = 2), heights= c(4.5, 0.5))
+      graphics::layout(matrix(c(2, 1), nrow = 2), heights = c(4.5, 0.5))
     }
-    
-    ## PLOT
-    par(mar = c(0,0,0,0))
-    plot.igraph(poppr_msn$graph, vertex.label = labs, vertex.size = vsize, 
-                layout = lay, ...)
-    if (scale.leg){
+    if (scale.leg) {
       ## SCALE BAR
-      if (quantiles){
+      if (quantiles) {
         scales <- sort(weights)
       } else {
         scales <- seq(wmin, wmax, l = 1000)
@@ -1115,6 +1183,15 @@ plot_poppr_msn <- function(x, poppr_msn, gscale = TRUE, gadj = 3,
       graphics::axis(3, at = c(0, 0.25, 0.5, 0.75, 1), labels = round(quantile(scales), 3))
       graphics::text(0.5, 0, labels = "DISTANCE", font = 2, cex = 1.5, adj = c(0.5, 0))
     }
+    ## PLOT
+    if ((pop.leg || size.leg) && scale.leg) frame()
+    par(mar = c(0,0,0,0))
+    plot.igraph(poppr_msn$graph, 
+                vertex.label = labs, 
+                vertex.size = vsize, 
+                layout = lay, 
+                ...)
+    
   }
   return(invisible(poppr_msn))
 }

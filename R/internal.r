@@ -159,15 +159,19 @@ percent_missing <- function(pop, type="loci", cutoff=0.05){
 # # .PA.pairwise.differences, .pairwise.differences
 #==============================================================================#
 
-round.poppr <- function(x){
-  if (x - as.integer(x) == 0.5 & as.integer(x)%%2 == 0)
-    x <- round(x) + 1
-  else if(-x + as.integer(x) == 0.5 & as.integer(x)%%2 == 0)  
-    x <- round(x) - 1
-  else
+round.poppr <- Vectorize(function(x){
+  ix <- as.integer(x)
+  is_even <- ix %% 2 == 0
+  if (is_even) {
+    if (x - ix == 0.5)
+      x <- round(x) + 1
+    else if (-x + ix == 0.5)  
+      x <- round(x) - 1  
+  } else {
     x <- round(x)
+  }
   return(x)
-}
+})
 #==============================================================================#
 # Subsetting the population and returning the indices.
 # 
@@ -1426,21 +1430,6 @@ number_missing_locus <- function(x, divisor){
 }
 
 #==============================================================================#
-# tabulate the amount of missing data per genotype. 
-#
-# Public functions utilizing this function:
-# none
-#
-# Private functions utilizing this function:
-# # percent_missing
-#==============================================================================#
-
-number_missing_geno <- function(x, divisor){
-  missing_result <- rowSums(1 - propTyped(x, by = "both"))
-  return(missing_result/divisor)
-}
-
-#==============================================================================#
 # Replace infinite values with the maximum finite value of a distance matrix.
 #
 # Public functions utilizing this function:
@@ -1574,7 +1563,7 @@ palette_parser <- function(inPAL, npop, pnames){
     } else if (npop == length(inPAL)){
       color <- stats::setNames(inPAL, pnames)
     } else if (npop < length(inPAL)){
-      warning("Number of populations less than number of colors supplied. Discarding extra colors.")
+      warning("Number of populations fewer than number of colors supplied. Discarding extra colors.")
       color <- stats::setNames(inPAL[1:npop], pnames)
     } else {
       warning("insufficient color palette supplied. Using topo.colors().")
@@ -2903,4 +2892,192 @@ cromulent_replen <- function(gid, replen){
   } 
   new_replen <- match_replen_to_loci(the_loci, replen)
   return(new_replen)
+}
+
+
+#' calculate the distance between two circles
+#'
+#' @param c1 radius of circle 1
+#' @param c2 radius of circle 2
+#'
+#' @return the distance between two centers on one axis
+#' @noRd
+#' @details 
+#' https://stackoverflow.com/a/14830596/2752888
+cdist <- function(c1, c2){
+  a <- (c1 + c2) ^ 2
+  b <- (c1 - c2) ^ 2
+  sqrt(a - b)
+}
+
+# spread the circles out 
+#' Arrange circles adjacent to each other
+#'
+#' @param radii a vector indicating the radii of the circles to be arranged.
+#'
+#' @return a vector of positions on which to plot the centers of circles
+#' @noRd
+make_adjacent_circles <- function(radii){
+  res <- vapply(seq(radii), function(i) {
+    if (i == 1)
+      0.0
+    else
+      cdist(radii[i], radii[i - 1])
+  }, numeric(1))
+  cumsum(res)
+}
+
+#' Make labels for circles
+#' 
+#' This function takes in a range of numbers and figures out three circles that
+#' exist in these numbers to create a legend using the range and approximate 
+#' mean of the numbers
+#'
+#' @param mlg_number a vector of integers
+#'
+#' @return 1, 2, or 3 integers.
+#' @noRd
+#'
+#' @examples
+#' set.seed(40)
+#' make_circle_labs(sample(100, 50, replace = TRUE))
+make_circle_labs <- function(mlg_number){
+  labs   <- range(mlg_number)
+  if (diff(labs) > 1) {
+    m    <- mean(labs)
+    m    <- mlg_number[which.min(abs(mlg_number - m))]
+    labs <- c(labs[1], m, labs[2])
+  } else if (diff(labs) == 0) {
+    labs <- labs[1]
+  }
+  labs
+}
+
+#' Get the correct side of the legend box
+#'
+#' @param a the result of a "legend" call
+#' @param side either "top", "bottom", "right", or "left"
+#'
+#' @return a vector of at max length 4
+#' @noRd
+#'
+#' @examples
+#' plot(seq(-1, 1), seq(-1, 1), asp = 1)
+#' tr <- legend("topright", fill = "blue", legend = "blue")
+#' tl <- legend("topleft", fill = "blue", legend = "blue")
+#' bl <- legend("bottomleft", fill = "blue", legend = "blue")
+#' br <- legend("bottomright", fill = "blue", legend = "blue")
+#' ce <- legend("center", fill = "blue", legend = "blue")
+#' points(x = get_legend_side(ce, 3:4), 
+#'        y = get_legend_side(ce, 1:2), 
+#'        col = c("red", "blue"))
+#' points(x = get_legend_side(tl, 3:4), 
+#'        y = get_legend_side(tl, 1:2), 
+#'        col = c("red", "blue"))
+#' points(x = get_legend_side(bl, 3:4), 
+#'        y = get_legend_side(bl, 1:2), 
+#'        col = c("red", "blue"))
+#' points(x = get_legend_side(br, 3:4), 
+#'        y = get_legend_side(br, 1:2), 
+#'        col = c("red", "blue"))
+#' points(x = get_legend_side(tr, 3:4), 
+#'        y = get_legend_side(tr, 1:2), 
+#'        col = c("red", "blue"))
+get_legend_side <- function(a, side = NULL) {
+  res <- c(
+    top    = a$rect$top,
+    bottom = a$rect$top  - a$rect$h,
+    right  = a$rect$left + a$rect$w,
+    left   = a$rect$left
+  )
+  return( if (is.null(side)) res else res[side] )
+}
+
+#' Create a circle legend
+#'
+#' @param a the output of a "legend" call. Defaults to `NULL`.
+#' @param mlg_number a vector of integers
+#' @param scale a number by which to multiply the node sizes
+#' @param cex character expansion for the text
+#' @param radmult multiplier for the radius (specifically for [plot_poppr_msn])
+#' @param xspace the defined xspacer (currently is wonky :/)
+#' @param font font for the title
+#' @param pos a numeric position for the title or NULL
+#' @param x the position for the leftmost part of the legend
+#' @param y the position of the topmost part of the legend
+#' @param txt The position of the text
+#' 
+#' @details
+#'   If a legend is provided in `a`, then the position of the circle legend will
+#'   be below it. If not, the arguments left, top, and txt will control the
+#'   position of the text within the box. 
+#'
+#' @return a legend with circles
+#'
+#' @noRd
+make_circle_legend <-
+  function(a = NULL,
+           mlg_number,
+           scale = 5,
+           cex = 0.75,
+           radmult = 1,
+           xspace = NULL,
+           font = 1,
+           pos = NULL,
+           x = -1.55,
+           y = 1,
+           txt = -1.3) {
+    
+  
+  # Create example circles for comparison
+  labs   <- make_circle_labs(mlg_number)
+  rads   <- (sqrt(labs) * scale)/200
+  
+  if (!is.null(a)){
+    txt    <- a$text$x[1]    
+    left   <- get_legend_side(a, "left")   
+    bottom <- get_legend_side(a, "bottom")   
+  } else {
+    left   <- x
+    bottom <- y
+  }
+  
+  # Get the space between legend elements
+  yspace <- if (!is.null(a)) diff(a$text$y) else 0.05
+  yspace <- if (length(yspace) > 0L) min(abs(yspace)) else 0.05
+  xspace <- if (is.null(xspace)) 0.25 * yspace else 2 * xspace * yspace
+  
+  # Create positions of circles horizontally
+  diam <- max(rads) * 2
+  big_circles <- diam > abs(txt - left)/2
+  circlx <- if (big_circles) left + diam + xspace else txt
+  circlx <- rep(circlx, length(rads))
+  
+  # shift the y position of the circles
+  cpos   <- make_adjacent_circles(rads)
+  circly <- bottom - ((2.5 * yspace) + max(cpos) + max(rads)/2)
+  circly <- cpos + circly
+  
+  # Create the circle legend
+  xpos <- if (is.null(pos)) left else pos
+  tadj <- if (is.null(pos)) c(0, 0.5) else c(0.5, 0.5)
+  graphics::text(x     = xpos, 
+                 y     = bottom - yspace, 
+                 label = "Samples/Node",
+                 adj   = tadj,
+                 font  = font,
+                 cex   = cex)
+  
+  graphics::symbols(x       = circlx - (rads * radmult + xspace), 
+                    y       = circly, 
+                    circles = rads * radmult, 
+                    add     = TRUE, 
+                    inches  = FALSE, 
+                    asp     = 1)
+  
+  graphics::text(x      = circlx, 
+                 y      = circly, 
+                 labels = labs, 
+                 adj    = c(0, 0.5),
+                 cex    = cex)
 }

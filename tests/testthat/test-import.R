@@ -160,6 +160,24 @@ test_that("improperly-formatted data causes an error", {
   expect_error(read.genalex(f, sep = "\t"), fmsg)
 })
 
+test_that("sample names with apostrophes can be imported", {
+  skip_on_cran()
+  better_than_yar <- "1,5,1,5
+,,,7_09_BB,
+Ind,Pop,CHMFc4,CHMFc5
+phaser,7_09_BB,224,85
+rock,7_09_BB,224,97
+bat'leth,7_09_BB,224,97
+paper,7_09_BB,224,97
+scissors,7_09_BB,224,97"
+  
+  res <- poppr::read.genalex(textConnection(better_than_yar))
+  expect_is(res, "genclone")
+  expect_equal(nInd(res), 5L)
+  expect_equal(nLoc(res), 1L)
+  expect_equal(indNames(res), c("phaser", "rock", "bat'leth", "paper", "scissors"))
+})
+
 context("Data export tests")
 
 test_that("genclone objects can be saved and restored", {
@@ -229,7 +247,15 @@ test_that("genalex data can be imported with region data to genind and genclone"
 	skip_on_cran()
 	rr1 <- system.file("files/rootrot.csv", package = "poppr")
 	rr2 <- system.file("files/rootrot2.csv", package = "poppr")
-
+	Xcoord <- rnorm(187)
+	Ycoord <- rnorm(187)
+	rrg <- read.csv(rr2, header = FALSE) 
+	blank <- rep("", nrow(rrg))
+	rrg <- cbind(rrg, blank, data.frame(X = c(NA, NA, "x", Xcoord), 
+	                                    Y = c(NA, NA, "y", Ycoord)))
+	rrfile <- tempfile()
+	write.table(rrg, file = rrfile, quote = FALSE, sep = ",", row.names = FALSE,
+	            col.names = FALSE, na = "")
 	root1gc <- read.genalex(rr1)
 	root1gd <- read.genalex(rr1, genclone = FALSE)
 	
@@ -238,14 +264,22 @@ test_that("genalex data can be imported with region data to genind and genclone"
 	
 	root2re <- read.genalex(rr2, region = TRUE)
 
+	root2reg <- read.genalex(rrfile, region = TRUE, geo = TRUE)
+	
 	expect_is(root1gc, "genclone")
 	expect_is(root1gd, "genind")
 
 	expect_is(root2gc, "genclone")
 	expect_is(root2gd, "genind")
+
+	expect_is(root2reg, "genclone")
+	
 	expect_equal(length(nameStrata(root2gc)), 1L)
 	expect_equal(length(nameStrata(root2re)), 2L)
 	expect_identical(nameStrata(root2re), c("Pop", "Region"))
+	expect_identical(nameStrata(root2reg), c("Pop", "Region"))
+	expect_equivalent(other(root2reg)$xy, 
+	                  data.frame(x = Xcoord, y = Ycoord))
 })
 
 test_that("genalex data can be imported with a region column", {
@@ -255,19 +289,40 @@ test_that("genalex data can be imported with a region column", {
   yrnums <- yr[1, 1:4]
   region <- c("", "", "Region", rep(c("one", "two"), 3))
   blank <- rep("", 9)
-  yr <- cbind(yr[, 2], region, yr[, -c(1:2)], blank, yr[, 1])
-  yr[1, ] <- c(yrnums, rep("", ncol(yr) - 4))
-  yr[1, 5:7] <- c("2", "3", "3")
-  yr[2, 6:7] <- c("one", "two")
-  
-  yrfile <- tempfile()
+  Xcoords <- rnorm(6)
+  X       <- c("", "", "x", Xcoords)
+  Ycoords <- rnorm(6)
+  Y       <- c("", "", "y", Ycoords)
+  yrg         <- yr
+  yr          <- cbind(yr[, 2], region, yr[, -c(1:2)], blank, yr[, 1])
+  yr[1, ]     <- c(yrnums, rep("", ncol(yr) - 4))
+  yr[1, 5:7]  <- c("2", "3", "3")
+  yr[2, 6:7]  <- c("one", "two")
+  yrg         <- cbind(yr, X, Y)
+  yrfile  <- tempfile()
+  yrgfile <- tempfile()
   write.table(yr, file = yrfile, quote = FALSE, sep = ",", row.names = FALSE,
               col.names = FALSE)
-  genind_region <- read.genalex(yrfile, region = TRUE)
+  write.table(yrg, file = yrgfile, quote = FALSE, sep = ",", row.names = FALSE,
+              col.names = FALSE)
+  
+  genind_region     <- read.genalex(yrfile, region = TRUE)
+  genind_region_geo <- read.genalex(yrgfile, region = TRUE, geo = TRUE)
+  
   expect_is(genind_region, "genclone")
+  expect_is(genind_region_geo, "genclone")
+  
   expect_equal(nameStrata(genind_region), c("Pop", "Region"))
+  expect_equal(nameStrata(genind_region_geo), c("Pop", "Region"))
+  
   setPop(genind_region) <- ~Region
+  setPop(genind_region_geo) <- ~Region
+  
   expect_equal(popNames(genind_region), c("one", "two"))
+  expect_equal(popNames(genind_region_geo), c("one", "two"))
+  
+  expect_equivalent(other(genind_region_geo)$xy, 
+                    data.frame(x = Xcoords, y = Ycoords))
 })
 
 
