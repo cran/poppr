@@ -1,6 +1,6 @@
-62157ed9c64da0cf11b5a09cf3f8f745 *DESCRIPTION
+4932144b69d6aec64ebf4fe9498f77d7 *DESCRIPTION
 5f153a9fca9807a4fd02d3875c8f39b5 *NAMESPACE
-24ed8b009af793793dc049c136e97794 *NEWS
+f51a9483ed29e2895873043f22bd91da *NEWS
 0cc9124068a9440bc04273e66fb5c28c *R/Index_calculations.r
 ba4f13bedb17f96bfa5bcb1468440987 *R/aaaMLGclass.R
 0c36189064430f4125c117160c1a7f27 *R/aaaMLGmethods.R
@@ -42,13 +42,13 @@ fb2dd3af1fa45afff66026fd18f84ffa *R/visualizations.r
 8ec80a9d12500fae4b76b2118049a5b1 *inst/CITATION
 a0fa733767939e0f10abc78da70b1e82 *inst/doc/algo.R
 395665fe58cc7d809f07496659788215 *inst/doc/algo.Rnw
-86021ce99e2bce6b4deaae090bbb75f0 *inst/doc/algo.pdf
+cf4011ca5c37231ac842c558f83701db *inst/doc/algo.pdf
 bebfca269490cda05e5d0f6164259fb0 *inst/doc/mlg.R
 af8d2c46b330e08822ba95672bac4076 *inst/doc/mlg.Rmd
-c2b6239510c94be56f1ea1254f102534 *inst/doc/mlg.html
+4afc53a050057d719d67dea4090da605 *inst/doc/mlg.html
 ccb3e8124c5b541bfca2c15fb64fe47a *inst/doc/poppr_manual.R
 336b98deda7ea6e843b224b11162ef87 *inst/doc/poppr_manual.Rmd
-a8c771595bc915f6d8d95e8a87f4a603 *inst/doc/poppr_manual.html
+bd4c7a7ed67c1924418267670f9a53b0 *inst/doc/poppr_manual.html
 2e1ba95b8537037a21ed3cb8d507f28d *inst/files/rootrot.csv
 502952e55e2a1dff9eb742ac05282e12 *inst/files/rootrot2.csv
 ba2b4146131f64837c485ce100bbdbf1 *inst/files/simulated.dat
@@ -132,7 +132,7 @@ e7714e993df2ce3a9444048f31355e8e *man/snpclone-coercion-methods.Rd
 9346a11eac007010558180bb23123460 *man/unique-methods.Rd
 6a0d275ad244e54c95e8e036555157d9 *man/win.ia.Rd
 95e3011e37d9dde0d75f3a3819b2acd3 *src/Makevars
-758ef7950d60d93a053e6aa0884991fa *src/bitwise_distance.c
+182e34c726ae087b8c33a44351eb5d64 *src/bitwise_distance.c
 6fa58635c7e8cd692193b470e9a81e87 *src/init.c
 6db54d309fb415562ee0c78b687e7f09 *src/mlg_clustering.c
 57e32fbca169d365c42d64a307d2e096 *src/mlg_counter.c
@@ -187,9 +187,7 @@ b3e8603f1fd9bbba61be2efa87a58f82 *vignettes/mod_dat.png
 4ca8584a1a55548392bbe25ab8a407f4 *vignettes/nancybruvo.rda
 fb16fcda45a8ae6b20a619676b43d69f *vignettes/pnas.bst
 b627e02993664d331b0be187107254b0 *vignettes/poppr.css
-7433d554de7a0a2737f284b0eda94887 *vignettes/poppr_manual-concordance.tex
 336b98deda7ea6e843b224b11162ef87 *vignettes/poppr_manual.Rmd
-aa695ea7d29a20eff6d2ce6125e1e37d *vignettes/poppr_manual.synctex.gz
 cabffd757636fdd164aa75d1efaaf24e *vignettes/popprlogo.png
 8109e09afdd1606ddd6bdce4a39c48ec *vignettes/rootrot2.png
 a25d42af1bf69fee290c668ef708d6f0 *vignettes/small_logo.png
