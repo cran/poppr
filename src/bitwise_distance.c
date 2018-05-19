@@ -96,7 +96,7 @@ struct locus
 
 
 SEXP bitwise_distance_haploid(SEXP genlight, SEXP missing, SEXP requested_threads);
-SEXP bitwise_distance_diploid(SEXP genlight, SEXP missing, SEXP differences_only, SEXP requested_threads);
+SEXP bitwise_distance_diploid(SEXP genlight, SEXP missing, SEXP euclid, SEXP differences_only, SEXP requested_threads);
 SEXP association_index_haploid(SEXP genlight, SEXP missing, SEXP requested_threads);
 SEXP association_index_diploid(SEXP genlight, SEXP missing, SEXP differences_only, SEXP requested_threads);
 SEXP get_pgen_matrix_genind(SEXP genind, SEXP freqs, SEXP pops, SEXP npop);
@@ -106,9 +106,9 @@ SEXP get_pgen_matrix_genind(SEXP genind, SEXP freqs, SEXP pops, SEXP npop);
 void fill_zygosity(struct zygosity *ind);
 char get_similarity_set(struct zygosity *ind1, struct zygosity *ind2);
 int get_zeros(char sim_set);
-int get_difference(struct zygosity *z1, struct zygosity *z2);
-int get_distance(struct zygosity *z1, struct zygosity *z2);
-int get_distance_custom(char sim_set, struct zygosity *z1, struct zygosity *z2);
+// int get_difference(struct zygosity *z1, struct zygosity *z2);
+// int get_distance(struct zygosity *z1, struct zygosity *z2);
+int get_distance_custom(char sim_set, struct zygosity *z1, struct zygosity *z2, int euclid);
 
 /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 Calculates the pairwise differences between samples in a genlight object. The
@@ -172,10 +172,10 @@ SEXP bitwise_distance_haploid(SEXP genlight, SEXP missing, SEXP requested_thread
   // genlight object. ie, R_gen_symbol is being set up as an equivalent to the
   // @gen accessor for genlights.
 
-  PROTECT(R_gen_symbol = install("gen")); // Used for accessing the named
+  R_gen_symbol = PROTECT(install("gen")); // Used for accessing the named
                                           // elements of the genlight object
-  PROTECT(R_chr_symbol = install("snp"));
-  PROTECT(R_nap_symbol = install("NA.posi"));
+  R_chr_symbol = PROTECT(install("snp"));
+  R_nap_symbol = PROTECT(install("NA.posi"));
 
   // This will be a LIST of type LIST:RAW
   // Set R_gen to genlight@gen, a vector of genotypes in the genlight object
@@ -188,7 +188,7 @@ SEXP bitwise_distance_haploid(SEXP genlight, SEXP missing, SEXP requested_thread
 
   // Set up and initialize the matrix for storing total distance between each
   // pair of genotypes
-  PROTECT(R_out = allocVector(INTSXP, num_gens*num_gens));
+  R_out = PROTECT(allocVector(INTSXP, num_gens*num_gens));
   distance_matrix = R_Calloc(num_gens,int*);
   for(i = 0; i < num_gens; i++)
   {
@@ -442,13 +442,14 @@ and 2 for the distance between differing homozygotes).
 
 Input: A genlight object containing samples of diploids.
        A boolean representing whether missing data should match (TRUE) or not.
+       A boolean indicating if euclidian distance should be calculated (TRUE) or not.
        A boolean representing whether distance (FALSE) or differences (TRUE)
           should be returned.
        An integer representing the number of threads that should be used.
 Output: A distance matrix representing the distance between each sample in the
           genlight object.
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
-SEXP bitwise_distance_diploid(SEXP genlight, SEXP missing, SEXP differences_only, SEXP requested_threads)
+SEXP bitwise_distance_diploid(SEXP genlight, SEXP missing, SEXP euclid, SEXP differences_only, SEXP requested_threads)
 {
   // This function calculates the raw genetic distance between samples in
   // a genlight object. The general flow of this function is as follows:
@@ -488,6 +489,7 @@ SEXP bitwise_distance_diploid(SEXP genlight, SEXP missing, SEXP differences_only
   int next_missing_i;
   int next_missing_j;
   int missing_match;
+  // int is_euclid;
   int only_differences;
   int num_threads;
   char mask;
@@ -503,9 +505,9 @@ SEXP bitwise_distance_diploid(SEXP genlight, SEXP missing, SEXP differences_only
 
   // These variables and function calls are used to access elements of the genlight object.
   // ie, R_gen_symbol is being set up as an equivalent to the @gen accessor for genlights.
-  PROTECT(R_gen_symbol = install("gen")); // Used for accessing the named elements of the genlight object
-  PROTECT(R_chr_symbol = install("snp"));
-  PROTECT(R_nap_symbol = install("NA.posi"));
+  R_gen_symbol = PROTECT(install("gen")); // Used for accessing the named elements of the genlight object
+  R_chr_symbol = PROTECT(install("snp"));
+  R_nap_symbol = PROTECT(install("NA.posi"));
 
   // This will be a LIST of type LIST:RAW
   // Set R_gen to genlight@gen, a vector of genotypes in the genlight object stored as SNPbin objects.
@@ -514,7 +516,7 @@ SEXP bitwise_distance_diploid(SEXP genlight, SEXP missing, SEXP differences_only
   num_gens = XLENGTH(R_gen);
 
   // Set up and initialize the matrix for storing total distance between each pair of genotypes
-  PROTECT(R_out = allocVector(INTSXP, num_gens*num_gens));
+  R_out = PROTECT(allocVector(INTSXP, num_gens*num_gens));
   distance_matrix = R_Calloc(num_gens,int*);
   for(i = 0; i < num_gens; i++)
   {
@@ -718,7 +720,7 @@ SEXP bitwise_distance_diploid(SEXP genlight, SEXP missing, SEXP differences_only
         {
           // If we want the actual distance, we need a more complicated analysis of
           // the sets. See get_distance_custom for details.
-          cur_distance += get_distance_custom(tmp_sim_set,&set_1,&set_2);
+          cur_distance += get_distance_custom(tmp_sim_set, &set_1, &set_2, (int)INTEGER(euclid)[0]);
           // Rprintf("-> Current Distance: %d\n", cur_distance);
         }
       }
@@ -846,10 +848,10 @@ SEXP association_index_haploid(SEXP genlight, SEXP missing, SEXP requested_threa
 
   // These variables and function calls are used to access elements of the genlight object.
   // ie, R_gen_symbol is being set up as an equivalent to the @gen accessor for genlights.
-  PROTECT(R_gen_symbol = install("gen"));
-  PROTECT(R_chr_symbol = install("snp"));
-  PROTECT(R_nap_symbol = install("NA.posi"));
-  PROTECT(R_nloc_symbol = install("n.loc"));
+  R_gen_symbol = PROTECT(install("gen"));
+  R_chr_symbol = PROTECT(install("snp"));
+  R_nap_symbol = PROTECT(install("NA.posi"));
+  R_nloc_symbol = PROTECT(install("n.loc"));
 
   // This will be a LIST of type LIST:RAW
   // Set R_gen to genlight@gen, a vector of genotypes in the genlight object stored as SNPbin objects.
@@ -869,7 +871,7 @@ SEXP association_index_haploid(SEXP genlight, SEXP missing, SEXP requested_threa
   num_loci = INTEGER(R_nloc)[0];
 
   // Prepare and allocate the output matrix
-  PROTECT(R_out = allocVector(REALSXP, 1));
+  R_out = PROTECT(allocVector(REALSXP, 1));
   // Prepare and allocate a matrix to store the SNPbin data from all samples
   // so that we don't need to fetch them over and over.
   chunk_matrix = R_Calloc(num_gens,char*);
@@ -1044,8 +1046,7 @@ SEXP association_index_haploid(SEXP genlight, SEXP missing, SEXP requested_threa
   }
 
   // Get the distance matrix from bitwise_distance
-  PROTECT(R_dists = allocVector(INTSXP, num_gens*num_gens));
-  R_dists = bitwise_distance_haploid(genlight, missing, requested_threads);
+  R_dists = PROTECT(bitwise_distance_haploid(genlight, missing, requested_threads));
 
   // Calculate the sum and squared sum of distances between samples
   D = 0;
@@ -1127,6 +1128,7 @@ Input: A genlight object containing samples of diploids.
        A boolean representing whether or not missing values should match.
        A boolean representing whether distances or differences should be counted.
        An integer representing the number of threads to be used.
+       A kludge to allow bitwise_distance_diploid to work
 Output: The index of association for this genlight object over the specified loci
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
 SEXP association_index_diploid(SEXP genlight, SEXP missing, SEXP differences_only, SEXP requested_threads)
@@ -1181,6 +1183,7 @@ SEXP association_index_diploid(SEXP genlight, SEXP missing, SEXP differences_onl
   SEXP R_nap2;
   SEXP R_dists;
   SEXP R_nloc;
+  SEXP euclid;
   int nap1_length;
   int nap2_length;
   int chr_length;
@@ -1221,10 +1224,10 @@ SEXP association_index_diploid(SEXP genlight, SEXP missing, SEXP differences_onl
 
   // These variables and function calls are used to access elements of the genlight object.
   // ie, R_gen_symbol is being set up as an equivalent to the @gen accessor for genlights.
-  PROTECT(R_gen_symbol = install("gen")); // Used for accessing the named elements of the genlight object
-  PROTECT(R_chr_symbol = install("snp"));
-  PROTECT(R_nap_symbol = install("NA.posi"));
-  PROTECT(R_nloc_symbol = install("n.loc"));
+  R_gen_symbol = PROTECT(install("gen")); // Used for accessing the named elements of the genlight object
+  R_chr_symbol = PROTECT(install("snp"));
+  R_nap_symbol = PROTECT(install("NA.posi"));
+  R_nloc_symbol = PROTECT(install("n.loc"));
 
   // This will be a LIST of type LIST:RAW
   // Set R_gen to genlight@gen, a vector of genotypes in the genlight object stored as SNPbin objects.
@@ -1244,7 +1247,7 @@ SEXP association_index_diploid(SEXP genlight, SEXP missing, SEXP differences_onl
   num_loci = INTEGER(R_nloc)[0];
 
   // Prepare and allocate the output matrix
-  PROTECT(R_out = allocVector(REALSXP, 1));
+  R_out = PROTECT(allocVector(REALSXP, 1));
   // Prepare and allocate a matrix to store the SNPbin data from all samples
   // so that we don't need to fetch them over and over.
   chunk_matrix = R_Calloc(num_gens*2,char*);
@@ -1304,6 +1307,12 @@ SEXP association_index_diploid(SEXP genlight, SEXP missing, SEXP differences_onl
   chr_length = 0;
   missing_match = asLogical(missing);
   only_differences = asLogical(differences_only);
+  
+  // Get the distance matrix from bitwise_distance
+  euclid = PROTECT(ScalarLogical(0));
+  SEXP one_thread = PROTECT(ScalarInteger(1));
+  R_dists = PROTECT(bitwise_distance_diploid(genlight, missing, euclid, differences_only, one_thread));
+  
 
   // Loop through all SNP chunks
   #ifdef _OPENMP
@@ -1446,9 +1455,6 @@ SEXP association_index_diploid(SEXP genlight, SEXP missing, SEXP differences_onl
     }
   }
 
-  // Get the distance matrix from bitwise_distance
-  PROTECT(R_dists = allocVector(INTSXP, num_gens*num_gens));
-  R_dists = bitwise_distance_diploid(genlight, missing, differences_only, requested_threads);
 
   // Calculate the sum and squared sum of distances between samples
   D = 0;
@@ -1516,7 +1522,7 @@ SEXP association_index_diploid(SEXP genlight, SEXP missing, SEXP differences_onl
   R_Free(vars);
   R_Free(M);
   R_Free(M2);
-  UNPROTECT(6);
+  UNPROTECT(8);
   return R_out;
 
 }
@@ -1544,9 +1550,9 @@ SEXP get_pgen_matrix_genind(SEXP genind, SEXP freqs, SEXP pops, SEXP npop)
                         // *ploidy
 
   // Syntax for accessing the named elements of the genind object
-  PROTECT(R_tab_symbol = install("tab"));
-  PROTECT(R_loc_symbol = install("loc.n.all"));
-  PROTECT(R_ploidy_symbol = install("ploidy"));
+  R_tab_symbol = PROTECT(install("tab"));
+  R_loc_symbol = PROTECT(install("loc.n.all"));
+  R_ploidy_symbol = PROTECT(install("ploidy"));
 
   // Data in and data out ------------------------------
   int* ploidy;            // Ploidy per sample
@@ -1580,7 +1586,7 @@ SEXP get_pgen_matrix_genind(SEXP genind, SEXP freqs, SEXP pops, SEXP npop)
   num_loci = XLENGTH(R_nall);
   alleles_per_locus = INTEGER(R_nall);
   num_pops = INTEGER(npop)[0];
-  PROTECT(R_out = allocMatrix(REALSXP, num_gens, num_loci));
+  R_out = PROTECT(allocMatrix(REALSXP, num_gens, num_loci));
   pgens = REAL(R_out);
 
   // Tue Sep  1 11:19:55 2015 ------------------------------
@@ -1666,9 +1672,9 @@ SEXP get_pgen_matrix_genlight(SEXP genlight, SEXP window)
   SEXP R_gen_symbol;
   SEXP R_loc_symbol;
   SEXP R_pop_symbol;
-  PROTECT(R_gen_symbol = install("gen")); // Used for accessing the named elements of the genlight object
-  PROTECT(R_loc_symbol = install("n.loc"));
-  PROTECT(R_pop_symbol = install("pop"));
+  R_gen_symbol = PROTECT(install("gen")); // Used for accessing the named elements of the genlight object
+  R_loc_symbol = PROTECT(install("n.loc"));
+  R_pop_symbol = PROTECT(install("pop"));
   struct locus* loci;
   double *pgens;
   int num_gens;
@@ -1685,7 +1691,7 @@ SEXP get_pgen_matrix_genlight(SEXP genlight, SEXP window)
   num_sets = ceil((double)num_loci/(double)interval); // Number of sets of loci for which pgen values should be computed
   size = num_gens*num_sets;
   pgens = R_Calloc(size, double);
-  PROTECT(R_out = allocVector(REALSXP,size));
+  R_out = PROTECT(allocVector(REALSXP,size));
 
   // Find the number of populations by taking the max over all genotypes
   num_pops = 0;
@@ -1758,11 +1764,11 @@ void fill_Pgen(double *pgen, struct locus *loci, int interval, SEXP genlight)
   int next_missing_index;
   int next_missing;
 
-  PROTECT(R_gen_symbol = install("gen")); // Used for accessing the named elements of the genlight object
-  PROTECT(R_loc_symbol = install("n.loc"));
-  PROTECT(R_chr_symbol = install("snp"));
-  PROTECT(R_nap_symbol = install("NA.posi"));
-  PROTECT(R_pop_symbol = install("pop"));
+  R_gen_symbol = PROTECT(install("gen")); // Used for accessing the named elements of the genlight object
+  R_loc_symbol = PROTECT(install("n.loc"));
+  R_chr_symbol = PROTECT(install("snp"));
+  R_nap_symbol = PROTECT(install("NA.posi"));
+  R_pop_symbol = PROTECT(install("pop"));
 
   R_gen = getAttrib(genlight, R_gen_symbol);
   num_gens = XLENGTH(R_gen);
@@ -1920,11 +1926,11 @@ void fill_loci(struct locus *loc, SEXP genlight)
   int byte;
   int pop;
 
-  PROTECT(R_gen_symbol = install("gen")); // Used for accessing the named elements of the genlight object
-  PROTECT(R_loc_symbol = install("n.loc"));
-  PROTECT(R_chr_symbol = install("snp"));
-  PROTECT(R_nap_symbol = install("NA.posi"));
-  PROTECT(R_pop_symbol = install("pop"));
+  R_gen_symbol = PROTECT(install("gen")); // Used for accessing the named elements of the genlight object
+  R_loc_symbol = PROTECT(install("n.loc"));
+  R_chr_symbol = PROTECT(install("snp"));
+  R_nap_symbol = PROTECT(install("NA.posi"));
+  R_pop_symbol = PROTECT(install("pop"));
 
   // This will be a LIST of type LIST:RAW
   R_gen = getAttrib(genlight, R_gen_symbol);
@@ -2076,15 +2082,19 @@ Output: The number of locations in the given section that have differing zygosit
         between the two samples.
         cx, ca, and cn will be filled in both structs as a byproduct of this function.
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
-int get_difference(struct zygosity *z1, struct zygosity *z2)
-{
-  int dif = 0;
-  fill_zygosity(z1);
-  fill_zygosity(z2);
-  dif = get_zeros(get_similarity_set(z1,z2));
-
-  return dif;
-}
+/*
+ * 2018-05-13 Officially removed due to disuse
+ * 
+ * int get_difference(struct zygosity *z1, struct zygosity *z2)
+ * {
+ *   int dif = 0;
+ *   fill_zygosity(z1);
+ *   fill_zygosity(z2);
+ *   dif = get_zeros(get_similarity_set(z1,z2));
+ * 
+ *   return dif;
+ * }
+ */
 
 
 /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -2097,24 +2107,28 @@ Output: The total distance between two samples, such that DD/rr are a distance
         of 2, and Dr/rr are a distance of 1
         cx, ca, and cn will be filled in both structs as a byproduct of this function.
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
-int get_distance(struct zygosity *z1, struct zygosity *z2)
-{
-  int dist = 0;
-  char Hor;
-  char S;
-  char ch_dist;
-  fill_zygosity(z1);
-  fill_zygosity(z2);
-
-  S = get_similarity_set(z1,z2);
-  Hor = z1->ch | z2->ch;
-
-  ch_dist = Hor | S;  // Force ones everywhere they are the same
-  dist = get_zeros(S);  // Add one distance for every non-shared zygosity
-  dist += get_zeros(ch_dist); // Add another one for every difference that has no heterozygotes
-
-  return dist;
-}
+/*
+ * 2018-05-13 Officially removed due to disuse
+ * 
+ * int get_distance(struct zygosity *z1, struct zygosity *z2)
+ * {
+ *   int dist = 0;
+ *   char Hor;
+ *   char S;
+ *   char ch_dist;
+ *   fill_zygosity(z1);
+ *   fill_zygosity(z2);
+ * 
+ *   S = get_similarity_set(z1,z2);
+ *   Hor = z1->ch | z2->ch;
+ * 
+ *   ch_dist = Hor | S;  // Force ones everywhere they are the same
+ *   dist = get_zeros(S);  // Add one distance for every non-shared zygosity
+ *   dist += get_zeros(ch_dist); // Add another one for every difference that has no heterozygotes
+ * 
+ *   return dist;
+ * }
+ */
 
 
 /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -2127,19 +2141,25 @@ Input: A char representing the similarity set between two zygosity structs
 Output: The total distance between two samples, such that DD/rr are a distance
         of 2, and Dr/rr are a distance of 1
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
-int get_distance_custom(char sim_set, struct zygosity *z1, struct zygosity *z2)
+int get_distance_custom(char sim_set, struct zygosity *z1, struct zygosity *z2, int euclid)
 {
   int dist = 0;
+  int multiplier;
   char Hor;
   char S;
   char ch_dist;
 
   S = sim_set;
   Hor = z1->ch | z2->ch;
+  // The diploids are calculated in two phases. The first phase simply asks for
+  // the differences. The second asks if there are differences on both strands.
+  // To get euclidian values, we can multiply this by 3 so that the result is 4,
+  // which is 2^2. We will take the square root in R. 
+  multiplier = (euclid) ? 3 : 1;
 
   ch_dist = Hor | S;  // Force ones everywhere they are the same
   dist = get_zeros(S);  // Add one distance for every non-shared zygosity
-  dist += get_zeros(ch_dist); // Add another one for every difference that has no heterozygotes
+  dist += get_zeros(ch_dist) * multiplier; // Add another one for every difference that has no heterozygotes
 
   return dist;
 }

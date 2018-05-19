@@ -47,26 +47,27 @@
 #' Get a file name and path and store them in a list.
 #'
 #' getfile is a convenience function that serves as a wrapper for the functions
-#' \code{\link{file.choose}, \link{file.path},} and \code{\link{list.files}}. 
+#' [file.choose()], [file.path()], and [list.files()]. 
 #' If the user is working in a GUI environment, a window will pop up, allowing 
 #' the user to choose a specified file regardless of path.
 #'
 #' @param multi this is an indicator to allow the user to store the names of
 #' multiple files found in the directory. This is useful in conjunction with
-#' \code{\link{poppr.all}}. 
+#' [poppr.all()]. 
 #'
-#' @param pattern a \code{\link{regex}} pattern for use while 
-#' \code{multi == TRUE}. This will grab all files matching this pattern. 
+#' @param pattern a [regex()] pattern for use while 
+#' `multi == TRUE`. This will grab all files matching this pattern. 
 #' 
-#' @param combine \code{logical}. When this is set to \code{TRUE} (default), the
-#' \code{$files} vector will have the path appended to them. When it is set to
-#' \code{FALSE}, it will have the basename. 
+#' @param combine `logical`. When this is set to `TRUE` (default), the
+#' `$files` vector will have the path appended to them. When it is set to
+#' `FALSE`, it will have the basename. 
 #'
 #' @return \item{path}{a character string of the absolute path to the
 #' chosen file or files}
 #' \item{files}{a character vector containing the chosen file
 #' name or names.}
 #' @author Zhian N. Kamvar
+#' @md
 #'
 #' @examples
 #' \dontrun{
@@ -117,60 +118,52 @@ getfile <- function(multi=FALSE, pattern=NULL, combine=TRUE){
 }
 
 #==============================================================================#
-#' Importing data from genalex formatted *.csv files.
+#' Importing data from genalex formatted \*.csv files.
 #' 
 #' read.genalex will read in a genalex-formatted file that has been exported in 
 #' a comma separated format and will parse most types of genalex data. The 
-#' output is a \code{\linkS4class{genclone}} or \code{\linkS4class{genind}} 
-#' object.
+#' output is a [genclone-class][genclone] or [genind-class][genind] object.
 #' 
-#' @param genalex a *.csv file exported from genalex
+#' @param genalex a \*.csv file exported from genalex
 #'   
-#' @param ploidy indicate the ploidy of the dataset
+#' @param ploidy an integer to indicate the ploidy of the dataset
 #'   
 #' @param geo indicates the presence of geographic data in the file. This data 
-#'   will be included in a data frame labeled \code{xy} in the
-#'   \code{\link{other}} slot.
+#'   will be included in a data frame labeled `xy` in the
+#'   [other()] slot.
 #'   
 #' @param region indicates the presence of regional data in the file.
 #'   
-#' @param genclone when \code{TRUE} (default), the output will be a
-#'   \code{\linkS4class{genclone}} object. When \code{FALSE}, the output will be
-#'   a \code{\linkS4class{genind}} object
+#' @param genclone when `TRUE` (default), the output will be a [genclone-class]
+#'   object. When `FALSE`, the output will be a [genind-class] object
 #'   
 #' @param sep A character specifying the column separator of the data. Defaults 
 #'   to ",".
 #'   
-#' @param recode \strong{For polyploid data}: Do you want to recode your data to
-#'   have varying ploidy? Default is \code{FALSE}, and the data will be returned
-#'   with even ploidy where missing alleles are coded as "0". When \code{TRUE},
-#'   the data is run through the function \code{\link{recode_polyploids}} before
+#' @param recode **For polyploid data**: Do you want to recode your data to
+#'   have varying ploidy? Default is `FALSE`, and the data will be returned
+#'   with even ploidy where missing alleles are coded as "0". When `TRUE`,
+#'   the data is run through the function [recode_polyploids()] before
 #'   being returned. Note that this will prevent conversion to genpop objects in
 #'   the future. See details.
 #'   
-#' @return A \code{\linkS4class{genclone}} or \code{\linkS4class{genind}} 
-#'   object.
+#' @return A [genclone-class] or [genind-class] bject.
 #'   
 #' @note This function cannot handle raw allele frequency data.
 #'   
 #'   In the case that there are duplicated names within the file, this function 
 #'   will assume separate individuals and rename each one to a sequence of 
 #'   integers from 1 to the number of individuals. A vector of the original 
-#'   names will be saved in the \code{other} slot under \code{original_names}.
+#'   names will be saved in the `other` slot under `original_names`.
 #'   
 #'   
-#' @details \subsection{if \code{genclone = FALSE}}{ The resulting genind object
-#'   will have a data frame in the \code{other} slot called 
-#'   \code{population_hierarchy}. This will contain a column for your population
-#'   data and a column for your Regional data if you have set the flag.}
-#'   
-#'   \subsection{if \code{genclone = TRUE}}{ The resulting genclone object will 
-#'   have a single strata defined in the strata slot. This will 
-#'   be called "Pop" and will reflect the population factor defined in the 
-#'   genalex input. If \code{region = TRUE}, a second column will be inserted 
-#'   and labeled "Region". If you have more than two strata within 
-#'   your data set, you should run the command \code{\link{splitStrata}} on 
-#'   your data set to define the unique stratifications. }
+#' @details The resulting [genclone-class][genclone] or [genind-class][genind]
+#'   object will have a single strata defined in the strata slot. This will be
+#'   called "Pop" and will reflect the population factor defined in the genalex
+#'   input. If `region = TRUE`, a second column will be inserted and labeled
+#'   "Region". If you have more than two strata within your data set, you should
+#'   run the command [adegenet::splitStrata()] on your data set to define the
+#'   unique stratifications. 
 #'   
 #'   \subsection{FOR POLYPLOID (> 2n) DATA SETS}{ The genind object has 
 #'   an all-or-none approach to missing data. If a sample has missing data at a 
@@ -188,15 +181,16 @@ getfile <- function(multi=FALSE, pattern=NULL, combine=TRUE){
 #'   association in such a way as to be able to handle polyploids presented in 
 #'   this manner.
 #'   
-#'   * To restore functionality of analyses relying on allele frequencies, use
-#'   the \code{\link{recode_polyploids}} function.}
+#'   \* To restore functionality of analyses relying on allele frequencies, use
+#'   the [recode_polyploids()] function.}
 #'   
 #'   
-#' @seealso \code{\link{clonecorrect}}, \code{\linkS4class{genclone}}, 
-#'   \code{\linkS4class{genind}}, \code{\link{recode_polyploids}}
+#' @seealso [genind2genalex()], [clonecorrect()], [genclone-class],
+#'   [genind-class], [recode_polyploids()]
 #'   
 #' @export
 #' @author Zhian N. Kamvar
+#' @md
 #' @examples
 #' 
 #' \dontrun{
@@ -471,75 +465,98 @@ read.genalex <- function(genalex, ploidy = 2, geo = FALSE, region = FALSE,
 }
 
 #==============================================================================#
-#' Exporting data from genind objects to genalex formatted *.csv files.
+#' Export data from genind objects to genalex formatted \*.csv files.
 #' 
-#' genind2genalex will export a genclone or genind object to a *.csv file
+#' genind2genalex will export a genclone or genind object to a \*.csv file
 #' formatted for use in genalex.
 #' 
-#' @param gid a \code{\linkS4class{genclone}} or \code{\linkS4class{genind}}
+#' @param gid a [genclone-class] or [genind-class]
 #'   object.
 #'   
 #' @param filename a string indicating the name and/or path of the file you wish
-#'   to create.
+#'   to create. If this is left unchanged, the results will be saved in a
+#'   temporary file and a warning will be displayed for six seconds before the
+#'   file is written. This process should give you time to cancel the process
+#'   and choose a file path. Otherwise, the name of the file is returned, so you
+#'   can copy that to a file of your choice with [file.copy()]
 #'   
-#' @param quiet \code{logical} If \code{FALSE} a message will be printed to the 
+#' @param overwrite `logical` if `FALSE` (default) and `filename` exists, then
+#'   the file will not be overwritten. Set this option to `TRUE` to overwrite
+#'   the file.
+#' 
+#' @param quiet `logical` If `FALSE` a message will be printed to the 
 #'   screen.
 #'   
 #' @param pop a character vector OR formula specifying the population factor. 
 #'   This can be used to specify a specific subset of strata or custom 
-#'   population factor for the output. Note that the \code{allstrata} command 
+#'   population factor for the output. Note that the `allstrata` command 
 #'   has precedence over this unless the value of this is a new population
 #'   factor.
 #'   
-#' @param allstrata if this is \code{TRUE}, the strata will be combined into a
+#' @param allstrata if this is `TRUE`, the strata will be combined into a
 #'   single population factor in the genalex file.
 #' 
-#' @param geo \code{logical} Default is \code{FALSE}. If it is set to 
-#'   \code{TRUE}, the resulting file will have two columns for geographic data.
+#' @param geo `logical` Default is `FALSE`. If it is set to 
+#'   `TRUE`, the resulting file will have two columns for geographic data.
 #'   
-#' @param geodf \code{character} Since the \code{other} slot in the adegenet 
+#' @param geodf `character` Since the `other` slot in the adegenet 
 #'   object can contain many different items, you must specify the name of the 
-#'   data frame in the \code{other} slot containing your geographic coordinates.
+#'   data frame in the `other` slot containing your geographic coordinates.
 #'   It defaults to "xy".
 #'   
 #' @param sep a character specifying what character to use to separate columns. 
 #'   Defaults to ",".
 #'   
-#' @param sequence when \code{TRUE}, sequence data will be converted to integers
+#' @param sequence when `TRUE`, sequence data will be converted to integers
 #'   as per the GenAlEx specifications.
 #'   
-#' @note If you enter a file name that exists, that file will be overwritten. If
-#'   your data set lacks a population structure, it will be coded in the new 
-#'   file as a single population labeled "Pop". Likewise, if you don't have any
-#'   labels for your individuals, they will be labeled as "ind1" through 
-#'   "ind\emph{N}", with \emph{N} being the size of your population.
+#' @note  If your data set lacks a population structure, it will be coded in the
+#'   new file as a single population labeled "Pop". Likewise, if you don't have
+#'   any labels for your individuals, they will be labeled as "ind1" through
+#'   "ind*N*", with *N* being the size of your population.
 #'   
-#' @seealso \code{\link{clonecorrect}}, \code{\linkS4class{genclone}} or
-#'   \code{\linkS4class{genind}}
+#' @return The the file path or connection where the data were written.
+#' 
+#' @seealso [read.genalex()], [clonecorrect()], [genclone-class], [genind-class]
 #'   
 #' @export
 #' @author Zhian N. Kamvar
+#' @md
 #' @examples
 #' \dontrun{
 #' data(nancycats)
 #' genind2genalex(nancycats, "~/Documents/nancycats.csv", geo=TRUE)
 #' }
-#==============================================================================#
-genind2genalex <- function(gid, filename = "genalex.csv", quiet = FALSE, pop = NULL, 
-                           allstrata = TRUE, geo = FALSE, geodf = "xy", sep = ",",
-                           sequence = FALSE){
+genind2genalex <- function(gid, filename = "", overwrite = FALSE, quiet = FALSE, 
+                           pop = NULL, allstrata = TRUE, geo = FALSE, 
+                           geodf = "xy", sep = ",", sequence = FALSE){
   if (!is.genind(gid)) stop("A genind object is needed.")
   if (nchar(sep) != 1) stop("sep must be one byte/character (eg. \",\")")
+  if (!inherits(filename, "connection") && filename == "") {
+    filename <- tempfile(fileext = ".csv")
+    msg <- paste("\nNo file name was supplied.", 
+          "\nWriting to temporary file: ", filename, "\n")
+    warning(msg, immediate. = TRUE)
+    for (i in 1:3) {
+      message(paste("Starting in ...", 3 - i + 1, " "), appendLF = FALSE)
+      Sys.sleep(i)
+      message("\r", appendLF = FALSE)
+    }
+  } else if (!inherits(filename, "connection") && file.exists(filename) && !overwrite) {
+    msg <- paste("The file ", substitute(filename), "exists and will not be overwritten.",
+                 "\nUse `overwrite = TRUE` if you want to replace this file.")
+    stop(msg)
+  }
   
-  if (allstrata && !is.null(strata(gid))){
-    if (is.null(pop) && length(pop) != nInd(gid)){
+  if (allstrata && !is.null(strata(gid))) {
+    if (is.null(pop) && length(pop) != nInd(gid)) {
       allform <- paste0("~", paste(nameStrata(gid), collapse = "/"))
       allform <- stats::as.formula(allform)
       setPop(gid) <- allform
     } else {
       pop(gid) <- pop
     }
-  } else if (!is.null(pop)){
+  } else if (!is.null(pop)) {
     if ("formula" %in% class(pop)){
       setPop(gid) <- pop
     } else if (is.character(pop) && length(pop) == nInd(gid)){
@@ -644,4 +661,5 @@ genind2genalex <- function(gid, filename = "genalex.csv", quiet = FALSE, pop = N
   write.table(df, file = filename, quote = TRUE, na = replacement, append = TRUE, 
               row.names = FALSE, col.names = FALSE, sep = sep)
   if(!quiet) cat("Done.\n")
+  invisible(return(filename))
 }

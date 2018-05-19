@@ -588,6 +588,22 @@ setMethod(
     return(x)
   }
 )
+
+#' create a string of ploidy counts
+#'
+#' @param x a gen object 
+#' @param ploid a string of ploidy prefixes. 
+#'
+#' @return a string containing ploidy levels with counts for all samples
+#' @noRd
+#'
+#' @examples
+multiploid_string <- function(x, ploid) {
+  ploid  <- paste(ploid, paste0("(", table(x@ploidy), ")"))
+  ploid1 <- paste0(ploid[-length(ploid)], collapse = ", ")
+  sep    <- ifelse(length(ploid) > 2, ", ", " ")
+  ploid  <- paste0(ploid1, sep, "and ", ploid[length(ploid)])
+}
 #==============================================================================#
 #' @rdname genclone-method
 #' @param object a genclone object
@@ -599,30 +615,25 @@ setMethod(
     ploid  <- c("ha", "di", "tri", "tetra", "penta", "hexa", "hepta", "octa",
       "nona", "deca", "hendeca", "dodeca")
     ploid  <- paste0(unique(ploid[sort(object@ploidy)]), "ploid")
-    if (length(ploid) > 1){
-      ploid  <- paste(ploid, paste0("(", table(object@ploidy), ")"))
-      ploid1 <- paste0(ploid[-length(ploid)], collapse = ", ")
-      sep    <- ifelse(length(ploid) > 2, ", ", " ")
-      ploid  <- paste0(ploid1, sep, "and ", ploid[length(ploid)])
-    }
-    nind    <- nInd(object)
-    type    <- ifelse(object@type == "PA", "dominant", "codominant")
-    nmlg    <- length(unique(object@mlg))
-    nloc    <- nLoc(object)
-    npop    <- ifelse(is.null(object@pop), 0, nPop(object))
-    strata  <- length(object@strata)
-    chars   <- nchar(c(nmlg, nind, nloc, strata, 1, npop))
-    ltab    <- max(chars) - chars
-    ltab    <- vapply(ltab, function(x) substr("       ", 1, x+1), character(1))
-    pops    <- popNames(object)
-    poplen  <- length(pops)
+    ploid  <-  if (length(ploid) > 1) multiploid_string(object, ploid) else ploid 
+    nind   <- nInd(object)
+    type   <- ifelse(object@type == "PA", "dominant", "codominant")
+    nmlg   <- length(unique(object@mlg))
+    nloc   <- nLoc(object)
+    npop   <- ifelse(is.null(object@pop), 0, nPop(object))
+    strata <- length(object@strata)
+    chars  <- nchar(c(nmlg, nind, nloc, strata, 1, npop))
+    ltab   <- max(chars) - chars
+    ltab   <- vapply(ltab, function(x) substr("       ", 1, x+1), character(1))
+    pops   <- popNames(object)
+    poplen <- length(pops)
     the_type <- ifelse(is(object@mlg, "MLG"), visible(object@mlg), "nope")
     mlgtype  <- ifelse(is(object@mlg, "MLG"), paste0(the_type, " "), "")
     mlgtype  <- paste0(mlgtype, "multilocus genotypes")
     if (the_type == "contracted"){
       thresh <- round(cutoff(object@mlg)["contracted"], 3)
-      dist <- distname(object@mlg)
-      algo <- strsplit(distalgo(object@mlg), "_")[[1]][1]
+      dist   <- distname(object@mlg)
+      algo   <- strsplit(distalgo(object@mlg), "_")[[1]][1]
       if (!is.character(dist)){
         dist <- paste(utils::capture.output(dist), collapse = "")
       }
@@ -674,13 +685,8 @@ setMethod(
     nmlg  <- length(unique(x@mlg))
     ploid  <- c("ha", "di", "tri", "tetra", "penta", "hexa", "hepta", "octa",
       "nona", "deca", "hendeca", "dodeca")
-    ploid  <- paste0(unique(ploid[sort(x@ploidy)]), "ploid")
-    if (length(ploid) > 1){
-      ploid  <- paste(ploid, paste0("(", table(x@ploidy), ")"))
-      ploid1 <- paste0(ploid[-length(ploid)], collapse = ", ")
-      sep    <- ifelse(length(ploid) > 2, ", ", " ")
-      ploid  <- paste0(ploid1, sep, "and ", ploid[length(ploid)])
-    }
+    ploid   <- paste0(unique(ploid[sort(x@ploidy)]), "ploid")
+    ploid   <- if (length(ploid) > 1) multiploid_string(x, ploid) else ploid
     nind    <- nInd(x)     
     type    <- ifelse(x@type == "PA", "dominant", "codominant")
     nloc    <- nLoc(x)
@@ -855,9 +861,6 @@ setMethod(
   f = "as.genambig",
   signature(x = "genind"),
   definition = function(x){
-    if (!requireNamespace("polysat", quietly = TRUE)) {
-      stop("please run install.packages('polysat') to use this function.")
-    }
     suppressWarnings({
       gen <- recode_polyploids(x, newploidy = max(x@ploidy, na.rm = TRUE))
     })
@@ -899,6 +902,90 @@ setMethod(
     return(listx)
   })
 
+#' Split samples from a genind object into pseudo-haplotypes
+#'
+#'
+#' @param gid a [genind][adegenet::genind] or [genlight][adegenet::genlight] object.
+#'
+#' @return a haploid genind object with an extra [strata][adegenet::strata]
+#'   column called "Individual".
+#' @export
+#' @md
+#' 
+#' @note The [other slot][adegenet::other] will not be copied over to the new
+#'   genind object.
+#'
+#' @seealso [poppr.amova()] [pegas::amova()] [as.genambig()]
+#' 
+#' @details
+#' Certain analyses, such as [amova][poppr.amova] work best if within-sample
+#' variance (error) can be estimated. Practically, this is performed by
+#' splitting the genotypes across all loci to create multiple haplotypes. This
+#' way, the within-sample distance can be calculated and incorporated into the
+#' model. Please note that the haplotypes generated are based on the order of
+#' the unphased alleles in the genind object and do not represent true
+#' haplotypes. 
+#' 
+#' Haploid data will be returned un-touched.
+#'
+#' @rdname make_haplotypes-method
+#' @docType methods
+#' @aliases make_haplotypes,genclone-method 
+#'   make_haplotypes,snpclone-method 
+#'   make_haplotypes,genind-method
+#'   make_haplotypes,genlight-method
+#'   make_haplotypes,ANY-method
+#' @examples
+#' # Diploid data is doubled -------------------------------------------------
+#' 
+#' data(nancycats)
+#' nan9 <- nancycats[pop = 9]
+#' nan9hap <- make_haplotypes(nan9) 
+#' nan9              # 9 individuals from population 9
+#' nan9hap           # 18 haplotypes
+#' strata(nan9hap)   # strata gains a new column: Individual
+#' indNames(nan9hap) # individuals are renamed sequentially
+#' 
+#' 
+#' # Mix ploidy data can be split, but should be treated with caution --------
+#' # 
+#' # For example, the Pinf data set contains 86 tetraploid individuals, 
+#' # but there appear to only be diploids and triploid genotypes. When 
+#' # we convert to haplotypes, those with all missing data are dropped.
+#' data(Pinf)
+#' Pinf
+#' pmiss <- info_table(Pinf, type = "ploidy", plot = TRUE)
+#' 
+#' # No samples appear to be triploid across all loci. This will cause
+#' # several haplotypes to have a lot of missing data.
+#' p_haps <- make_haplotypes(Pinf)
+#' p_haps
+#' head(genind2df(p_haps), n = 20)
+make_haplotypes <- function(gid) standardGeneric("make_haplotypes")
+
+#' @export
+setGeneric("make_haplotypes")
+
+setMethod(
+  f = "make_haplotypes", 
+  signature(gid = "ANY"), 
+  definition = function(gid) {
+    stop("This function can only take genind or genlight objects")
+})
+
+setMethod(
+  f = "make_haplotypes", 
+  signature(gid = "genind"), 
+  definition = function(gid) {
+    make_haplotypes_genind(gid)
+})
+
+setMethod(
+  f = "make_haplotypes", 
+  signature(gid = "genlight"), 
+  definition = function(gid) {
+    make_haplotypes_genlight(gid)
+})
 
 # multilocus lineage methods ----------------------------------------------
 
@@ -1051,6 +1138,7 @@ setMethod(
     value <- match.arg(value, TYPES)
     if (!"MLG" %in% class(x@mlg)){
       x@mlg <- new("MLG", x@mlg)
+      distname(x@mlg) <- "bitwise.dist"
     }
     visible(x@mlg) <- value
     return(x)

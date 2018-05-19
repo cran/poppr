@@ -60,6 +60,18 @@ test_that("filter_stats works for genind", {
   expect_equivalent(cpnear, 3.5)
 })
 
+test_that("filter_stats still plots if thresholds is selected", {
+  skip_on_cran()
+  tmp <- tempfile(pattern = "hay", fileext = ".pdf")
+  expect_true(is.na(file.size(tmp)))
+  pdf(tmp)
+  filter_stats(x, distance = xd, threshold = 100L, plot = TRUE, nclone = 2, stats = "threshold")
+  dev.off()
+  expect_true(file.exists(tmp))
+  expect_true(file.size(tmp) > 0)
+  file.remove(tmp)
+})
+
 test_that("filter_stats works for snpclone", {
 	skip_on_cran()
 	res <- filter_stats(gc, distance = bitwise.dist, threshold = 100L, plot = TRUE)
@@ -90,7 +102,10 @@ test_that("mlg.filter can remember things", {
   original_vals <- "(0).+?(diss.dist).+?(farthest).+?"
   gc_original_vals <- "(0).+?(bitwise.dist).+?(farthest).+?"
   expect_output(show(x), original_vals)
+  expect_output(print(x), original_vals)
   expect_output(show(gc), gc_original_vals)
+  expect_output(print(gc), gc_original_vals)
+  
   
   # supplied distance matrices work
   assign("x20150702210257_distance", xd, envir = .GlobalEnv)

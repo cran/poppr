@@ -1,3 +1,70 @@
+poppr 2.8.0
+===========
+
+BUG FIX
+-------
+
+* `win.ia()` now has more consistent behavior with chromosome structure and will
+  no longer result in an integer overflow. 
+  (see https://github.com/grunwaldlab/poppr/issues/179). Thanks to @MarisaMiller
+  for the detailed bug report.
+* `plot_filter_stats()` will plot stats if supplied a list of thresholds.
+
+ALGORITHMIC CHANGE
+------------------
+
+* `win.ia()` may result in slightly different results because of two changes:
+  1. The windows will now always start at position one on any given chromosome.
+  This will result in some windows at the beginning of chromosomes having a 
+  value of `NA` if the first variant starts beyond the first window. 
+  2. Windows are now calculated for each chromosome independently. The previous
+  version first concatenated chromosomes with at least a window-sized gap 
+  between the chromosomes, but failed to ensure that the window always started
+  at the beginning of the chromosome. This version fixes that issue. 
+  (see https://github.com/grunwaldlab/poppr/issues/179).
+  
+DEPRECATION
+-----------
+
+* The `chromosome_buffer` argument for `win.ia()` has been permanently set to
+  `TRUE` and deprecated as it is no longer used. 
+
+NEW FEATURES
+------------
+
+* `poppr.amova()` will now handle genlight/snpclone objects.
+   See https://github.com/grunwaldlab/poppr/pull/185 for details.
+
+* `bitwise.dist()` now has two new options: `euclidean` and `scale_missing`.
+  When both of these are set to `TRUE`, the distance measured will be Euclidean
+  scaled for the amount of missing data in each comparison. This matches the 
+  output of base R's `dist()` function at a fraction of time and memory. 
+  See https://github.com/grunwaldlab/poppr/pull/176 for details.
+
+* `make_haplotypes()` is now a generic defined for both genind and genlight.
+  
+* `genind2genalex()` will no longer write to "genalex.csv" by default. Instead,
+  it will warn the user and write to a temporary file. 
+  See https://github.com/grunwaldlab/poppr/issues/175 for details.
+
+* `genind2genalex()` now has an `overwrite` parameter set to `FALSE` to prevent
+  accidental overwriting of files. 
+
+* `win.ia()` has a new argument `name_window`, which will give each element in 
+  the result the designation of the terminal position of that window. Thanks to
+  @MarisaMiller for the suggestion!
+
+DOCUMENTATION
+-------------
+
+* `cutoff_predictor()` was added to the MLG vignette
+
+MISC
+----
+
+* The RClone package has been added to suggests
+  (see https://github.com/grunwaldlab/poppr/issues/187)
+
 poppr 2.7.1
 ============
 

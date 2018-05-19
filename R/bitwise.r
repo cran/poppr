@@ -42,32 +42,42 @@
 #!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!#
 #!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!#
 #==============================================================================#
-#' Calculate a dissimilarity distance matrix for SNP data.
+#' Calculate dissimilarity or Euclidean distance for genlight objects
 #' 
-#' This function performs the same task as \code{\link{diss.dist}}, calculating 
-#' the fraction or number of different alleles between two genlight or snpclone
-#' objects.
+#' This function calculates both dissimilarity and Euclidean distances for 
+#' [genlight][genlight-class] or [snpclone][snpclone-class] objects. 
 #' 
-#' @param x a \code{\link{genlight}}, \code{\link{genind}},
-#'   \code{\link{genclone}}, or \code{\link{snpclone}} object.
+#' @param x a [genlight][genlight-class] or [snpclone][snpclone-class] object.
 #'   
-#' @param percent \code{logical}. Should the distance be represented from 0 to 
-#'   1? Default set to \code{TRUE}. \code{FALSE} will return the distance 
+#' @param percent `logical`. Should the distance be represented from 0 to 
+#'   1? Default set to `TRUE`. `FALSE` will return the distance 
 #'   represented as integers from 1 to n where n is the number of loci.
+#'   This option has no effect if `euclidean = TRUE`
 #'   
-#' @param mat \code{logical}. Return a matrix object. Default set to 
-#'   \code{FALSE}, returning a dist object. \code{TRUE} returns a matrix object.
+#' @param mat `logical`. Return a matrix object. Default set to 
+#'   `FALSE`, returning a dist object. `TRUE` returns a matrix object.
 #'   
-#' @param missing_match \code{logical}. Determines whether two samples differing
+#' @param missing_match `logical`. Determines whether two samples differing
 #'   by missing data in a location should be counted as matching at that 
-#'   location. Default set to \code{TRUE}, which forces missing data to match 
-#'   with anything. \code{FALSE} forces missing data to not match with any other
-#'   information, \strong{including other missing data}.
+#'   location. Default set to `TRUE`, which forces missing data to match 
+#'   with anything. `FALSE` forces missing data to not match with any other
+#'   information, **including other missing data**.
 #'   
-#' @param differences_only \code{logical}. When \code{differences_only = TRUE},
+#' @param scale_missing A logical. If `TRUE`, comparisons with missing
+#'   data is scaled up proportionally to the number of columns used by
+#'   multiplying the value by `m / (m - x)` where m is the number of
+#'   loci and x is the number of missing sites. This option matches the behavior
+#'   of base R's [dist()] function. 
+#'   Defaults to `FALSE`.
+#'   
+#' @param euclidean `logical`. if `TRUE`, the Euclidean distance will
+#'   be calculated.
+#'   
+#' @param differences_only `logical`. When `differences_only = TRUE`,
 #'   the output will reflect the number of different loci. The default setting,
-#'   \code{differences_only = FALSE}, reflects the number of different alleles.
+#'   `differences_only = FALSE`, reflects the number of different alleles.
 #'   Note: this has no effect on haploid organisms since 1 locus = 1 allele.
+#'   This option is NOT recommended. 
 #'   
 #' @param threads The maximum number of parallel threads to be used within this 
 #'   function. A value of 0 (default) will attempt to use as many threads as 
@@ -77,37 +87,73 @@
 #'   caution.
 #'   
 #'   
-#' @details The distance calculated here is quite simple and goes by many names,
-#'   depending on its application. The most familiar name might be the Hamming 
-#'   distance, or the number of differences between two strings.
+#' @details The default distance calculated here is quite simple and goes by
+#'   many names depending on its application. The most familiar name might be
+#'   the Hamming distance, or the number of differences between two strings.
 #'   
-#' @note If the user supplies a \code{genind} or \code{genclone} object,
-#'   \code{\link{prevosti.dist}} will be used for calculation.
+#'   As of poppr version 2.8.0, this function now also calculates Euclidean
+#'   distance and is considerably faster and more memory-efficient than the 
+#'   standard `dist()` function. 
+#'   
+#' @note This function is optimized for [genlight][genlight-class] and
+#'   [snpclone][snpclone-class] objects. This does not mean that it is a
+#'   catch-all optimization for SNP data. Three assumptions must be met for this
+#'   function to work:
+#'   
+#'   1. SNPs are bi-allelic 
+#'   2. Samples are haploid or diploid
+#'   3. All samples have the same ploidy
+#'   
+#'   If the user supplies a [genind][genind-class] or
+#'   [genclone][genclone-class] object, [prevosti.dist()] will be used for
+#'   calculation.
 #'   
 #' @return A dist object containing pairwise distances between samples.
 #'   
 #' @author Zhian N. Kamvar, Jonah C. Brooks
 #' 
 #' @export
-#' @seealso \code{\link{diss.dist}},
-#'    \code{\link{snpclone}},
-#'    \code{\link[adegenet]{genlight}},
-#'    \code{\link{win.ia}}, 
-#'    \code{\link{samp.ia}}
+#' @md
+#' @seealso [diss.dist()], [snpclone][snpclone-class],
+#'   [genlight][genlight-class], [win.ia()],  [samp.ia()]
 #' @examples
 #' set.seed(999)
 #' x <- glSim(n.ind = 10, n.snp.nonstruc = 5e2, n.snp.struc = 5e2, ploidy = 2)
 #' x
-#' # Assess fraction of different alleles (finer measure, usually the most sensible)
-#' system.time(xd <- bitwise.dist(x))
+#' # Assess fraction of different alleles
+#' system.time(xd <- bitwise.dist(x, threads = 1L))
 #' xd
 #' 
-#' # Assess fraction of different loci (coarse measure)
-#' system.time(xdt <- bitwise.dist(x, differences_only = TRUE))
+#' # Calculate Euclidean distance
+#' system.time(xdt <- bitwise.dist(x, euclidean = TRUE, scale_missing = TRUE, threads = 1L))
 #' xdt
+#' 
+#' \dontrun{
+#' 
+#' # This function is more efficient in both memory and speed than [dist()] for
+#' # calculating Euclidean distance on genlight objects. For example, we can
+#' # observe a clear speed increase when we attempt a calculation on 100k SNPs
+#' # with 10% missing data:
+#' 
+#' set.seed(999)
+#' mat <- matrix(sample(c(0:2, NA), 
+#'                      100000 * 50, 
+#'                      replace = TRUE, 
+#'                      prob = c(0.3, 0.3, 0.3, 0.1)),
+#'               nrow = 50)
+#' glite <- new("genlight", mat, ploidy = 2)
+#' 
+#' # Default Euclidean distance 
+#' system.time(dist(glite))
+#' 
+#' # Bitwise dist
+#' system.time(bitwise.dist(glite, euclidean = TRUE, scale_missing = TRUE))
+#' 
+#' }
 #==============================================================================#
 bitwise.dist <- function(x, percent = TRUE, mat = FALSE, missing_match = TRUE, 
-                         differences_only = FALSE, threads = 0){
+                         scale_missing = FALSE, euclidean = FALSE,
+                         differences_only = FALSE, threads = 0L){
   stopifnot(inherits(x, c("genlight", "genclone", "genind", "snpclone")))
   # Stop if the ploidy of the genlight object is not consistent
   stopifnot(min(ploidy(x)) == max(ploidy(x))) 
@@ -153,14 +199,21 @@ bitwise.dist <- function(x, percent = TRUE, mat = FALSE, missing_match = TRUE,
   }
   else
   {
-    pairwise_dist <- .Call("bitwise_distance_diploid", x, missing_match, differences_only, threads)
+    pairwise_dist <- .Call("bitwise_distance_diploid", x, missing_match, euclidean, differences_only, threads)
   }
   dist.mat <- pairwise_dist
   dim(dist.mat) <- c(inds,inds)
   colnames(dist.mat) <- ind.names
   rownames(dist.mat) <- ind.names
-  if (percent){
-    if(differences_only)
+  nas <- NA.posi(x)
+  if (scale_missing && sum(lengths(nas)) > 0) {
+    adj      <- missing_correction(nas, nLoc(x))
+    dist.mat <- dist.mat * adj
+  }
+  if (euclidean) {
+    dist.mat <- sqrt(dist.mat)
+  } else if (percent) {
+    if (differences_only)
     {
       dist.mat <- dist.mat/(numPairs)
     }
@@ -169,7 +222,7 @@ bitwise.dist <- function(x, percent = TRUE, mat = FALSE, missing_match = TRUE,
       dist.mat <- dist.mat/(numPairs*ploid)
     }
   }
-  if (mat == FALSE){
+  if (mat == FALSE) {
     dist.mat <- as.dist(dist.mat)
   }
   return(dist.mat)
@@ -189,7 +242,7 @@ poppr_has_parallel <- function(){
 
   supported <- .Call("omp_test", PACKAGE = "poppr")
 
-  if(supported == 0) {
+  if (supported == 0) {
     return(FALSE)
   } else {
     return(TRUE)
@@ -197,7 +250,24 @@ poppr_has_parallel <- function(){
 
 }
 
-
+#' Calculate correction for genetic distances
+#'
+#' @param nas a list of missing positions per sample
+#' @param nloc the number of loci
+#' @param mat a logical specifying whether or not a matrix should be returned
+#'   (default: TRUE)
+#'
+#' @return an n x n matrix or a choose(n, 2) length vector of values that scale
+#'   from 1 to the number of loci.
+#' @noRd
+missing_correction <- function(nas, nloc, mat = TRUE){
+  res <- .Call("adjust_missing", nas, nloc, PACKAGE = "poppr")
+  if (mat) {
+    return(res)
+  } else {
+    return(res[lower.tri(res)])
+  }
+}
 
 #==============================================================================#
 #' Calculate the index of association between samples in a genlight object.
@@ -205,7 +275,7 @@ poppr_has_parallel <- function(){
 #' This function parses over a genlight object to calculate and return the index
 #' of association for those samples.
 #' 
-#' @param x a \code{\link{genlight}} or \code{\link{snpclone}} object.
+#' @param x a [genlight][genlight-class] or [snpclone][snpclone-class] object.
 #'   
 #' @param missing_match a boolean determining whether missing data should be 
 #'   considered a match. If TRUE (default) missing data at a locus will match 
@@ -233,7 +303,8 @@ poppr_has_parallel <- function(){
 #' @author Zhian N. Kamvar, Jonah C. Brooks
 #'   
 #' @export
-#' @seealso \code{\link{win.ia}}, \code{\link{samp.ia}}
+#' @md
+#' @seealso [win.ia()], [samp.ia()]
 #' @keywords internal
 #==============================================================================#
 bitwise.ia <- function(x, missing_match=TRUE, differences_only=FALSE, threads=0){
@@ -255,8 +326,12 @@ bitwise.ia <- function(x, missing_match=TRUE, differences_only=FALSE, threads=0)
   # Ensure that every SNPbin object has data for all chromosomes
   if (ploid == 2){
     x  <- fix_uneven_diploid(x)
-    IA <- .Call("association_index_diploid", x, missing_match, differences_only, 
-                threads, PACKAGE = "poppr")
+    IA <- .Call("association_index_diploid", 
+                genlight = x, 
+                missing_match = missing_match, 
+                differences_only = differences_only, 
+                requested_threads = threads, 
+                PACKAGE = "poppr")
   }
   else if(ploid == 1)
   {
@@ -279,41 +354,41 @@ bitwise.ia <- function(x, missing_match=TRUE, differences_only=FALSE, threads=0)
 #' function will scan windows across the loci positions and calculate the index
 #' of association.
 #' 
-#' @param x a \code{\link{genlight}} or \code{\link{snpclone}} object.
+#' @param x a [genlight][genlight-class] or [snpclone][snpclone-class] object.
 #'   
 #' @param window an integer specifying the size of the window.
 #'   
 #' @param min.snps an integer specifying the minimum number of snps allowed per 
 #'   window. If a window does not meet this criteria, the value will return as
-#'   NA.
+#'   `NA`.
 #'   
 #' @param threads The maximum number of parallel threads to be used within this 
-#'   function. A value of 0 (default) will attempt to use as many threads as
-#'   there are available cores/CPUs. In most cases this is ideal. A value of 1
-#'   will force the function to run serially, which may increase stability on
-#'   some systems. Other values may be specified, but should be used with
-#'   caution.
+#'   function. Defaults to 1 thread, in which the function will run serially. A
+#'   value of 0 will attempt to use as many threads as there are available
+#'   cores/CPUs. In most cases this is ideal for speed. Note: this option is 
+#'   passed to [bitwise.ia()] and does not parallelize the windowization process.
 #'   
-#' @param quiet if \code{FALSE}, a progress bar will be printed to the screen.
+#' @param quiet if `FALSE` (default), a progress bar will be printed to the screen.
 #' 
-#' @param chromosome_buffer if \code{TRUE} (default), buffers will be placed 
+#' @param name_window if `TRUE` (default), the result vector will be named with
+#'   the terminal position of the window. In the case where several chromosomes
+#'   are represented, the position will be appended using a period/full stop.
+#' 
+#' @param chromosome_buffer *DEPRECATED* if `TRUE` (default), buffers will be placed 
 #'   between adjacent chromosomal positions to prevent windows from spanning two
 #'   chromosomes.
 #'   
-#' @return Index of association representing the samples in this genlight
-#'   object.
+#' @return A value of the standardized index of association for all windows in
+#'   each chromosome. 
 #'   
 #' @note this will calculate the standardized index of association from Agapow
-#' 2001. See \code{\link{ia}} for details.
+#' and Burt, 2001. See [ia()] for details.
 #' 
 #' @author Zhian N. Kamvar, Jonah C. Brooks
-#'   
+#' 
+#' @md
 #' @export
-#' @seealso \code{\link[adegenet]{genlight}},
-#'    \code{\link{snpclone}},
-#'    \code{\link{samp.ia}},
-#'    \code{\link{ia}},
-#'    \code{\link{bitwise.dist}}
+#' @seealso [genlight][genlight-class], [snpclone][snpclone-class], [ia()], [samp.ia()], [bitwise.dist()]
 #' @examples
 #' 
 #' # with structured snps assuming 1e4 positions
@@ -342,93 +417,104 @@ bitwise.ia <- function(x, missing_match=TRUE, differences_only=FALSE, threads=0)
 #' 
 #' # Converting chromosomal coordinates to tidy data
 #' library("dplyr")
+#' library("tidyr")
 #' res_tidy <- res %>% 
 #'   data_frame(rd = ., chromosome = names(.)) %>% # create two column data frame
-#'   filter(chromosome != "") %>%                  # filter out null chromosomes
-#'   group_by(chromosome) %>%                      # group data by chromosome
-#'   mutate(window = row_number()) %>%             # windows by chromosome
-#'   ungroup(chromosome) %>%                       # ungroup and reorder
-#'   mutate(chromosome = factor(chromosome, unique(chromosome))) 
+#'   separate(chromosome, into = c("chromosome", "position")) %>% # get the position info
+#'   mutate(position = as.integer(position)) %>% # force position as integers
+#'   mutate(chromosome = factor(chromosome, unique(chromosome))) # force order chromosomes
 #' res_tidy
 #' 
 #' # Plotting with ggplot2
 #' library("ggplot2")
-#' ggplot(res_tidy, aes(x = window, y = rd, color = chromosome)) +
+#' ggplot(res_tidy, aes(x = position, y = rd, color = chromosome)) +
 #'   geom_line() +
 #'   facet_wrap(~chromosome, nrow = 1) +
 #'   ylab(expression(bar(r)[d])) +
-#'   xlab("window (100bp)") +
-#'   theme(legend.position = "bottom")
+#'   xlab("terminal position of sliding window") +
+#'   labs(caption = "window size: 100bp") + 
+#'   theme(axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.5)) +
+#'   theme(legend.position = "top")
 #'
 #' }
 #' 
 #==============================================================================#
 win.ia <- function(x, window = 100L, min.snps = 3L, threads = 1L, quiet = FALSE,
-                   chromosome_buffer = TRUE){
+                   name_window = TRUE, chromosome_buffer = TRUE){
   stopifnot(is(x, "genlight"))
-  if (is.null(position(x))){
+  if (is.null(position(x))) {
     position(x) <- seq(nLoc(x))
   }
+  if (!chromosome_buffer) {
+    msg <- paste("The argument `chromosome_buffer` has been deprecated as of",
+                 "poppr version 1.8.0. All chromosomes are treated separately",
+                 "by default.")
+    warning(msg, immediate. = TRUE)
+  }
   chromos <- !is.null(chromosome(x))
-  if (chromos){
-    CHROM <- chromosome(x)
-    x     <- adjust_position(x, chromosome_buffer, window)
+  xpos    <- position(x)
+  quiet   <- should_poppr_be_quiet(quiet)
+  winmat  <- make_windows(maxp = max(xpos), minp = 1L, window = window)
+  if (chromos) {
+    # Converting to character is necessary to avoid empty chromosomes.
+    # See: https://twitter.com/ZKamvar/status/991114778415325184
+    CHROM         <- as.character(chromosome(x))
+    chrom_names   <- unique(CHROM)
+    pos_per_chrom <- split(xpos, CHROM)[chrom_names]
+    win_per_chrom <- ceiling(vapply(pos_per_chrom, max, integer(1))/window)
+    names(win_per_chrom) <- chrom_names
+    nwin                 <- sum(win_per_chrom)
+    nchrom <- length(win_per_chrom) -> chromosomes_left
   } else {
-    if (any(duplicated(position(x)))){
+    if (any(duplicated(position(x)))) {
       msg <- paste("There are duplicate positions in the data without any",
                    "chromosome structure. All positions must be unique.\n\n",
                    "Please the function chromosome() to add chromosome",
                    "coordinates or modify the positions.")
       stop(msg, call. = FALSE)
     }
+    nwin             <- nrow(winmat)
+    chromosomes_left <- 1L
   }
-  xpos    <- position(x)
-  quiet   <- should_poppr_be_quiet(quiet)
-  winmat  <- make_windows(maxp = max(xpos), minp = min(xpos), window = window)
-  nwin    <- nrow(winmat)
   res_mat <- vector(mode = "numeric", length = nwin)
-  if (chromos) res_names <- vector(mode = "character", length = nwin)
+  res_counter <- 1L
+  if (name_window || chromos) res_names <- vector(mode = "character", length = nwin)
   if (!quiet) progbar <- txtProgressBar(style = 3)
-  for (i in seq(nwin)){
-    posns    <- which(xpos %in% winmat[i, 1]:winmat[i, 2])
-    last_pos <- posns[length(posns)]
-    if (length(posns) < min.snps){
-      res_mat[i] <- NA
-    } else {
-      res_mat[i] <- bitwise.ia(x[, posns], threads = threads)
+  while (chromosomes_left > 0L) {
+    chrom_counter   <- if (chromos) nchrom - chromosomes_left + 1L else 1L
+    current_windows <- if (chromos) win_per_chrom[chrom_counter] else nwin 
+    for (i in seq(current_windows)) {
+      # Define the window
+      the_window <- winmat[i, 1]:winmat[i, 2]
+      the_chrom  <- if (chromos) chrom_names[chrom_counter] else TRUE
+      posns      <- xpos %in% the_window
+      # If there is chromosome structure, then add the current chromosome as an
+      # additional constraint to the snps analyzed
+      j <- if (chromos) posns & CHROM == the_chrom else posns
+      
+      # Check to make sure the SNP threshold is met. If not, set to NA
+      if (sum(j) < min.snps) {
+        res_mat[res_counter] <- NA_real_
+      } else {
+        res_mat[res_counter] <- bitwise.ia(x[, j], threads = threads)
+      }
+      if (name_window || chromos) {
+        the_name <- if (chromos) paste(the_chrom, winmat[i, 2], sep = ".") else as.character(winmat[i, 2])
+        res_names[res_counter] <- the_name
+      }
+      if (!quiet) {
+        setTxtProgressBar(progbar, res_counter/nwin)
+      }
+      res_counter <- res_counter + 1L
     }
-    if (chromos && !is.na(last_pos) && length(last_pos) > 0){
-      res_names[i] <- CHROM[last_pos]
-    }
-    if (!quiet){
-      setTxtProgressBar(progbar, i/nwin)
-    }
+    # Decrement the number of chromosomes left to ensure the while loop can exit.
+    chromosomes_left <- chromosomes_left - 1L
   }
   if (!quiet) cat("\n")
-  if (chromos) names(res_mat) <- res_names
+  if (name_window || chromos) names(res_mat) <- res_names
   return(res_mat)
 }
 
-
-adjust_position <- function(x, chromosome_buffer = TRUE, window){
-  xpos  <- position(x)
-  # Each chromosome has it's own position.
-  # In this case, get large round number for each chromosome break.
-  maxp <- 10^ceiling(log(max(xpos), 10))
-  # The buffer prevents the window from crossing into the next chromosome
-  buffer <- chromosome_buffer*window
-  if (length(unique(pmin(xpos))) < nLoc(x)){
-    lpos <- split(xpos, chromosome(x))
-    for (p in seq(lpos)){
-      # adding the large round number plus a buffer (if applicable). This will
-      # ensure that chromosomes don't overlap.
-      lpos[[p]] <- lpos[[p]] + (maxp*(p - 1)) + (buffer*(p - 1)) + 1
-    }
-    xpos <- unlist(lpos, use.names = FALSE)
-  }
-  position(x) <- xpos  
-  return(x)
-}
 #==============================================================================#
 #' Calculate random samples of the index of association for genlight objects.
 #' 
@@ -436,7 +522,7 @@ adjust_position <- function(x, chromosome_buffer = TRUE, window){
 #' sense to calculate the index of association over that many loci, this
 #' function will randomly sample sites to calculate the index of association.
 #' 
-#' @param x a \code{\link{genlight}} or \code{\link{snpclone}} object.
+#' @param x a [genlight][genlight-class] or [snpclone][snpclone-class] object.
 #'   
 #' @param n.snp the number of snps to be used to calculate standardized index
 #' of association.
@@ -450,19 +536,19 @@ adjust_position <- function(x, chromosome_buffer = TRUE, window){
 #'   some systems. Other values may be specified, but should be used with
 #'   caution.
 #' 
-#' @param quiet if \code{FALSE}, a progress bar will be printed to the screen.
+#' @param quiet if `FALSE`, a progress bar will be printed to the screen.
 #'
 #' @details The index of association is a summary of linkage disequilibrium 
 #'   among many loci. More information on the index of association can be found 
-#'   associated with the funciton \code{\link{ia}}. A value near or at zero
+#'   associated with the funciton [ia()]. A value near or at zero
 #'   indicator of linkage equilibrium, whereas values significantly greater than
 #'   zero indicate linkage disequilibrium. However, if the observed variance in 
 #'   distance among individuals is less than the expected, mildly negative 
 #'   values may be observed (as the range of this index is negative one to one).
-#'   This function will call the function \code{\link{bitwise.ia}} for
-#'   \code{reps} times to calculate the index of association over \code{n.snp}
+#'   This function will call the function [bitwise.ia()] for
+#'   `reps` times to calculate the index of association over `n.snp`
 #'   loci. The standardized index of association ('rbarD') will be calculated
-#'   \code{reps} times. These esitmates of linkage disequilibrium from random
+#'   `reps` times. These esitmates of linkage disequilibrium from random
 #'   genomic fractions can then be summarized (e.g., using a histogram) as an
 #'   estimate of genome-wide linkage disequilibrium.
 #'   
@@ -473,19 +559,19 @@ adjust_position <- function(x, chromosome_buffer = TRUE, window){
 #' 
 #'   
 #' @note this will calculate the standardized index of association from Agapow
-#' 2001. See \code{\link{ia}} for details.
+#' 2001. See [ia()] for details.
 #' 
 #' @return Index of association representing the samples in this genlight
 #'   object.
 #' @author Zhian N. Kamvar, Jonah C. Brooks
 #'   
 #' @export
-#' @seealso \code{\link[adegenet]{genlight}},
-#'    \code{\link{snpclone}},
-#'    \code{\link{win.ia}},
-#'    \code{\link{ia}},
-#'    \code{\link{bitwise.dist}}
-#'    \code{\link{bitwise.ia}}
+#' @seealso [genlight][genlight-class],
+#'    [snpclone][snpclone-class],
+#'    [win.ia()],
+#'    [ia()],
+#'    [bitwise.dist()]
+#'    [bitwise.ia()]
 #' @examples
 #' # with structured snps assuming 1e4 positions
 #' set.seed(999)
