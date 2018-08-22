@@ -47,6 +47,12 @@ test_that("info_table plots ploidy for diploids", {
 	expect_equal(unique(np$data$Observed_Ploidy), c(NA, 2))
 })
 
+test_that("info_table also works on non-SSR data", {
+  skip_on_cran()
+  data("H3N2", package = "adegenet")
+  expect_failure(expect_error(info_table(H3N2[50:60, loc = 1:10], type = "ploidy")))
+})
+
 context("mlg.table plots")
 
 # mlg.table plots ---------------------------------------------------------
@@ -70,9 +76,6 @@ test_that("mlg.table produces barplots", {
 	
 	expect_identical(ptb$data, ptc$data)
 	expect_false(identical(ptb$data, pt$data))
-	
-	expect_identical(pt$mapping$x, ptb$mapping$x)
-	expect_false(identical(ptc$mapping$x, ptb$mapping$x))
 	
 	expect_output(print(pt$layers), "geom_bar")
 })
@@ -161,7 +164,7 @@ test_that("ia produces histograms", {
 	expect_is(pres, "popprtable")
 	expect_output(print(pres), "nancy")
 
-	if (ggversion <= oldgg){
+	if (ggversion <= oldgg) {
 	  expect_output(print(iaplot$layers[[1]]), "geom_histogram")
 	} else {
 	  expect_output(print(iaplot$layers[[1]]), "geom_bar")

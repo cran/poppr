@@ -1,8 +1,8 @@
 Package: poppr
 Type: Package
 Title: Genetic Analysis of Populations with Mixed Reproduction
-Version: 2.8.0
-Date: 2018-05-18
+Version: 2.8.1
+Date: 2018-08-22
 Authors@R: c(person(c("Zhian", "N."), "Kamvar", role = c("cre", "aut"),
     email = "zkamvar@gmail.com", comment = c(ORCID = "0000-0003-1458-7108")),
     person(c("Javier", "F."), "Tabima", role = "aut",
@@ -34,23 +34,21 @@ Depends: R (>= 2.15.1), adegenet (>= 2.0.0)
 Imports: stats, graphics, grDevices, utils, vegan, ggplot2, phangorn,
         ape (>= 3.1-1), igraph (>= 1.0.0), methods, ade4, pegas,
         polysat, dplyr (>= 0.4), rlang, boot, shiny, magrittr
-Suggests: testthat, knitr, rmarkdown, knitcitations, poweRlaw, cowplot,
-        RClone
+Suggests: testthat, knitr, rmarkdown, poweRlaw, cowplot, RClone
 License: GPL-2 | GPL-3
 VignetteBuilder: knitr
-RoxygenNote: 6.0.1.9000
+RoxygenNote: 6.1.0
 NeedsCompilation: yes
-Packaged: 2018-05-19 00:19:03 UTC; zhian
-Author: Zhian N. Kamvar [cre, aut] (<https://orcid.org/0000-0003-1458-7108>>),
-  Javier F. Tabima [aut] (<https://orcid.org/0000-0002-3603-2691>>),
-  Sydney E. Everhart [ctb, dtc]
-    (<https://orcid.org/0000-0002-5773-1280>>),
+Packaged: 2018-08-22 15:55:45 UTC; zkamvar
+Author: Zhian N. Kamvar [cre, aut] (<https://orcid.org/0000-0003-1458-7108>),
+  Javier F. Tabima [aut] (<https://orcid.org/0000-0002-3603-2691>),
+  Sydney E. Everhart [ctb, dtc] (<https://orcid.org/0000-0002-5773-1280>),
   Jonah C. Brooks [aut],
   Stacy A. Krueger-Hadfield [ctb]
-    (<https://orcid.org/0000-0002-7324-7448>>),
+    (<https://orcid.org/0000-0002-7324-7448>),
   Erik Sotka [ctb],
-  Brian J. Knaus [ctb] (<https://orcid.org/0000-0003-1665-4343>>),
-  Patrick G. Meirmans [ctb] (<https://orcid.org/0000-0002-6395-8107>>),
-  Niklaus J. Grunwald [ths] (<https://orcid.org/0000-0003-1656-7602>>)
+  Brian J. Knaus [ctb] (<https://orcid.org/0000-0003-1665-4343>),
+  Patrick G. Meirmans [ctb] (<https://orcid.org/0000-0002-6395-8107>),
+  Niklaus J. Grunwald [ths] (<https://orcid.org/0000-0003-1656-7602>)
 Repository: CRAN
-Date/Publication: 2018-05-19 07:20:30 UTC
+Date/Publication: 2018-08-22 16:40:03 UTC
