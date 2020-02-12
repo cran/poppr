@@ -1,8 +1,7 @@
 Package: poppr
 Type: Package
 Title: Genetic Analysis of Populations with Mixed Reproduction
-Version: 2.8.3
-Date: 2019-06-13
+Version: 2.8.4
 Authors@R: c(person(c("Zhian", "N."), "Kamvar", role = c("cre", "aut"),
     email = "zkamvar@gmail.com", comment = c(ORCID = "0000-0003-1458-7108")),
     person(c("Javier", "F."), "Tabima", role = "aut",
@@ -42,9 +41,9 @@ Imports: stats, graphics, grDevices, utils, vegan, ggplot2, phangorn,
 Suggests: testthat, knitr, rmarkdown, poweRlaw, cowplot, RClone
 License: GPL-2 | GPL-3
 VignetteBuilder: knitr
-RoxygenNote: 6.1.1
+RoxygenNote: 7.0.2
 NeedsCompilation: yes
-Packaged: 2019-06-18 15:31:56 UTC; zkamvar
+Packaged: 2020-02-12 13:26:48 UTC; zkamvar
 Author: Zhian N. Kamvar [cre, aut] (<https://orcid.org/0000-0003-1458-7108>),
   Javier F. Tabima [aut] (<https://orcid.org/0000-0002-3603-2691>),
   Sydney E. Everhart [ctb, dtc] (<https://orcid.org/0000-0002-5773-1280>),
@@ -57,4 +56,4 @@ Author: Zhian N. Kamvar [cre, aut] (<https://orcid.org/0000-0003-1458-7108>),
   Frédéric D. Chevalier [ctb] (<https://orcid.org/0000-0003-2611-8106>),
   Niklaus J. Grünwald [ths] (<https://orcid.org/0000-0003-1656-7602>)
 Repository: CRAN
-Date/Publication: 2019-06-18 16:21:21 UTC
+Date/Publication: 2020-02-12 15:50:02 UTC

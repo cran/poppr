@@ -1,29 +1,29 @@
-## ---- echo = FALSE, message = FALSE, warning = FALSE---------------------
+## ---- echo = FALSE, message = FALSE, warning = FALSE--------------------------
 knitr::opts_chunk$set(message = FALSE, warning = FALSE, tidy = FALSE)
 knitr::opts_chunk$set(fig.align = "center", fig.show = 'asis')
 
-## ---- warning = TRUE-----------------------------------------------------
+## ---- warning = TRUE----------------------------------------------------------
 library("poppr")
 data(monpop)
 monpop
 head(mll(monpop, "original"), 20) # Showing the definitions for the first 20 samples
 
-## ------------------------------------------------------------------------
+## -----------------------------------------------------------------------------
 mll(monpop) <- "original"
 monpop
 
-## ------------------------------------------------------------------------
+## -----------------------------------------------------------------------------
 mll(monpop) <- "custom"
 monpop
 
-## ------------------------------------------------------------------------
+## -----------------------------------------------------------------------------
 head(mll(monpop, "custom"), 20) # Showing the definitions for the first 20 samples
 
-## ------------------------------------------------------------------------
+## -----------------------------------------------------------------------------
 mll(monpop) <- "original"
 monpop
 
-## ------------------------------------------------------------------------
+## -----------------------------------------------------------------------------
 grid_example <- matrix(c(1, 4,
                          1, 1,
                          5, 1,
@@ -35,20 +35,20 @@ rownames(grid_example) <- LETTERS[1:5]
 colnames(grid_example) <- c("x", "y")
 grid_example
 
-## ------------------------------------------------------------------------
+## -----------------------------------------------------------------------------
 library("poppr")
 x <- as.genclone(df2genind(grid_example, ploidy = 1))
 tab(x)  # Look at the multilocus genotype table
 nmll(x) # count the number of multilocus genotypes
 mll(x)  # show the multilocus genotype definitions
 
-## ------------------------------------------------------------------------
+## -----------------------------------------------------------------------------
 x <- as.genclone(df2genind(rbind(grid_example, new = c(5, NA)), ploidy = 1))
 tab(x)  # Note the missing data at locus 2.
 nmll(x)
 mll(x)
 
-## ------------------------------------------------------------------------
+## -----------------------------------------------------------------------------
 grid_new <- rbind(grid_example,
                   new = c(5, NA),
                   mut = c(5, 2)
@@ -58,11 +58,11 @@ tab(x)
 nmll(x)
 mll(x)
 
-## ------------------------------------------------------------------------
+## -----------------------------------------------------------------------------
 (xt <- apply(tab(x), 1, paste, collapse = ""))
 rank(xt, ties.method = "first")
 
-## ---- fig.width = 5, fig.height = 5--------------------------------------
+## ---- fig.width = 5, fig.height = 5-------------------------------------------
 library("phangorn")
 library("ape")
 raw_dist <- function(x){
@@ -71,111 +71,111 @@ raw_dist <- function(x){
 (xdis <- raw_dist(x))
 plot.phylo(upgma(xdis))
 
-## ------------------------------------------------------------------------
+## -----------------------------------------------------------------------------
 x # We have 7 MLGs before filtering
 mlg.filter(x, distance = xdis) <- 1 + .Machine$double.eps^0.5
 x # Now we have 5 MLGs
 mll(x) <- "original" # We'll reset to the naive definition
 
-## ------------------------------------------------------------------------
+## -----------------------------------------------------------------------------
 mll(x, "original")
 mlg.filter(x, distance = xdis, threshold = 1, stats = c("mlg", "thresholds"))
 
-## ------------------------------------------------------------------------
+## -----------------------------------------------------------------------------
 (e <- .Machine$double.eps^0.5) # A very tiny number
 mlg.filter(x, distance = xdis, threshold = 1 + e, stats = c("mlg", "thresholds"))
 
-## ------------------------------------------------------------------------
+## -----------------------------------------------------------------------------
 mlg.filter(x, distance = xdis, threshold = 0, stats = c("mlg", "thresholds"))
 mll(x, "original")
 
-## ------------------------------------------------------------------------
+## -----------------------------------------------------------------------------
 x
 mlg.table(x) # Before: 7 MLGs
 mlg.filter(x, distance = xdis) <- 1 + e
 x
 mlg.table(x) # After: 5 MLGs
 
-## ------------------------------------------------------------------------
+## -----------------------------------------------------------------------------
 mlg.filter(x) <- 4.51
 x
 mlg.table(x)
 
-## ---- errors = TRUE------------------------------------------------------
+## ---- errors = TRUE-----------------------------------------------------------
 rm(xdis) # NOOOOOO!
 try(mlg.filter(x) <- 1 + e)
 
-## ---- echo = FALSE-------------------------------------------------------
+## ---- echo = FALSE------------------------------------------------------------
 cat(" Error: cannot evaluate distance function, it might be missing.")
 
-## ------------------------------------------------------------------------
+## -----------------------------------------------------------------------------
 mlg.filter(x, distance = raw_dist) <- 1 + e
 x
 
-## ------------------------------------------------------------------------
+## -----------------------------------------------------------------------------
 bruvo.dist(x, replen = c(1, 1))
 mlg.filter(x, distance = bruvo.dist, replen = c(1, 1)) <- 0.44
 x
 
-## ------------------------------------------------------------------------
+## -----------------------------------------------------------------------------
 mll(x, "original")
 mll(x) # contracted
 mll(x) <- "original"
 mll(x) # original
 
-## ----plot_replen---------------------------------------------------------
+## ----plot_replen--------------------------------------------------------------
 data(Pinf)
 Pinf
 pinfreps <- fix_replen(Pinf, c(2, 2, 6, 2, 2, 2, 2, 2, 3, 3, 2))
 pinf_filtered <- filter_stats(Pinf, distance = bruvo.dist, replen = pinfreps, plot = TRUE)
 
-## ----cutof_predictor-----------------------------------------------------
+## ----cutof_predictor----------------------------------------------------------
 print(farthest_thresh <- cutoff_predictor(pinf_filtered$farthest$THRESHOLDS))
 print(average_thresh  <- cutoff_predictor(pinf_filtered$average$THRESHOLDS))
 print(nearest_thresh  <- cutoff_predictor(pinf_filtered$nearest$THRESHOLDS))
 
-## ----pinf_thresh---------------------------------------------------------
+## ----pinf_thresh--------------------------------------------------------------
 mlg.filter(Pinf, distance = bruvo.dist, replen = pinfreps, algorithm = "f") <- farthest_thresh
 Pinf
 
-## ------------------------------------------------------------------------
+## -----------------------------------------------------------------------------
 data(partial_clone)
 pc <- as.genclone(partial_clone)
 mll(pc)
 
-## ------------------------------------------------------------------------
+## -----------------------------------------------------------------------------
 LETTERS[mll(pc)]  # The new MLGs
 mll.custom(pc) <- LETTERS[mll(pc)]
 mlg.table(pc)
 
-## ------------------------------------------------------------------------
+## -----------------------------------------------------------------------------
 pcpal <- colorRampPalette(c("blue", "gold"))
 set.seed(9001)
 pcmsn <- bruvo.msn(pc, replen = rep(1, nLoc(pc)), palette = pcpal,
                    vertex.label.color = "firebrick", vertex.label.font = 2,
                    vertex.label.cex = 1.5)
 
-## ------------------------------------------------------------------------
+## -----------------------------------------------------------------------------
 mll.levels(pc)[mll.levels(pc) == "Q"] <- "M"
 
-## ------------------------------------------------------------------------
+## -----------------------------------------------------------------------------
 set.seed(9001)
 pcmsn <- bruvo.msn(pc, replen = rep(1, nLoc(pc)), palette = pcpal,
                    vertex.label.color = "firebrick", vertex.label.font = 2,
                    vertex.label.cex = 1.5)
 
-## ------------------------------------------------------------------------
+## -----------------------------------------------------------------------------
 data(monpop)
 splitStrata(monpop) <- ~Tree/Year/Symptom
 montab <- mlg.table(monpop, strata = ~Symptom/Year)
 
-## ------------------------------------------------------------------------
+## -----------------------------------------------------------------------------
 (monstat <- diversity_stats(montab))
 
-## ---- message = TRUE, warning = TRUE-------------------------------------
+## ---- message = TRUE, warning = TRUE------------------------------------------
 diversity_ci(montab, n = 100L, raw = FALSE)
 
-## ------------------------------------------------------------------------
+## -----------------------------------------------------------------------------
 myCF <- function(x){
  x <- drop(as.matrix(x))
  if (length(dim(x)) > 1){ # if it's a matrix
@@ -187,7 +187,7 @@ myCF <- function(x){
 }
 (monstat2 <- diversity_stats(montab, CF = myCF))
 
-## ---- eval = FALSE-------------------------------------------------------
+## ---- eval = FALSE------------------------------------------------------------
 #  # Repeat lengths are necessary
 #  reps <- fix_replen(monpop,
 #                     c(CHMFc4 = 7, CHMFc5 = 2, CHMFc12 = 4,
@@ -202,7 +202,7 @@ myCF <- function(x){
 #  mlg.filter(monpop, distance = bruvo.dist, replen = reps) <- (0.5/13) + e
 #  montabf <- mlg.table(monpop, strata = ~Symptom/Year)
 
-## ---- echo = FALSE-------------------------------------------------------
+## ---- echo = FALSE------------------------------------------------------------
 monpop@mlg <- new("MLG", monpop@mlg)
 filts <- c(260L, 179L, 168L, 168L, 167L, 221L, 152L, 133L, 144L, 78L,
 78L, 79L, 81L, 44L, 40L, 40L, 40L, 38L, 119L, 120L, 93L, 29L,
@@ -270,28 +270,28 @@ monpop@mlg@mlg$contracted <- filts
 mll(monpop) <- "contracted"
 montabf <- mlg.table(monpop, strata = ~Symptom/Year)
 
-## ------------------------------------------------------------------------
+## -----------------------------------------------------------------------------
 (monstatf <- diversity_stats(montabf, CF = myCF))
 monstat2 - monstatf # Take the difference from the unfiltered
 
-## ------------------------------------------------------------------------
+## -----------------------------------------------------------------------------
 mll(monpop) <- "original"
 
-## ---- message = TRUE-----------------------------------------------------
+## ---- message = TRUE----------------------------------------------------------
 (monrare <- diversity_ci(montab, n = 100L, rarefy = TRUE, raw = FALSE))
 
-## ------------------------------------------------------------------------
+## -----------------------------------------------------------------------------
 nmll(monpop, "original")
 nmll(monpop, "contracted")
 mll(monpop) <- "contracted"
 
-## ------------------------------------------------------------------------
+## -----------------------------------------------------------------------------
 monpop %>%
   clonecorrect(strata = NA) %>%  # 1. clone correct whole data set
   dist() %>%                     # 2. calculate distance
   sum()                          # 3. take the sum of the distance
 
-## ------------------------------------------------------------------------
+## -----------------------------------------------------------------------------
 set.seed(999)
 monpop[sample(nInd(monpop))] %>% # 1. shuffle samples
   clonecorrect(strata = NA) %>%  # 2. clone correct whole data set

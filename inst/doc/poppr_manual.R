@@ -1,9 +1,9 @@
-## ---- echo = FALSE, message = FALSE, warning = FALSE---------------------
+## ---- echo = FALSE, message = FALSE, warning = FALSE--------------------------
 knitr::opts_chunk$set(message = FALSE, warning = FALSE, tidy = FALSE)
 knitr::opts_chunk$set(fig.align = "center", fig.show = 'asis')
 knitr::opts_knit$set(eval.after = 'fig.cap')
 
-## ----poppr_funk, eval = TRUE, echo = FALSE-------------------------------
+## ----poppr_funk, eval = TRUE, echo = FALSE------------------------------------
 print_command <- function(funk){
   fargs <- formals(funk)
 
@@ -19,34 +19,34 @@ print_command <- function(funk){
   return(as.call(fargs))
 }
 
-## ----popprcite, eval = TRUE----------------------------------------------
+## ----popprcite, eval = TRUE---------------------------------------------------
 citation(package = "poppr")
 
-## ----install, eval = FALSE-----------------------------------------------
+## ----install, eval = FALSE----------------------------------------------------
 #  install.packages("poppr", repos = "http://cloud.r-project.org/")
 
-## ----install_devtools, eval = FALSE--------------------------------------
+## ----install_devtools, eval = FALSE-------------------------------------------
 #  install.packages("devtools")
 
-## ----install_github, eval = FALSE----------------------------------------
+## ----install_github, eval = FALSE---------------------------------------------
 #  devtools::install_github("grunwaldlab/poppr")
 
-## ----echo = FALSE--------------------------------------------------------
+## ----echo = FALSE-------------------------------------------------------------
 x <- list(files = "/path/to/R/poppr/files/rootrot.csv", path = "/path/to/R/poppr/files")
 
-## ----message = TRUE------------------------------------------------------
+## ----message = TRUE-----------------------------------------------------------
 library("poppr")
 
-## ----getfilefunk, eval=FALSE---------------------------------------------
+## ----getfilefunk, eval=FALSE--------------------------------------------------
 #  x <- getfile()
 
 ## ----getfile-window, out.width = "500px", fig.cap = "A popup window as it appears in OSX (Mountain Lion)", echo = FALSE----
 knitr::include_graphics(path = "getfile.png")
 
-## ----getfilex------------------------------------------------------------
+## ----getfilex-----------------------------------------------------------------
 x
 
-## ----firstpoppr, eval=FALSE----------------------------------------------
+## ----firstpoppr, eval=FALSE---------------------------------------------------
 #  myData  <- read.genalex(x$files)
 #  myData
 
