@@ -1,3 +1,24 @@
+poppr 2.8.6
+===========
+
+BUG FIX
+-------
+
+* `read.genalex()` now can import columns with entirely "T" alleles as "T" 
+  instead of "TRUE". (See https://github.com/grunwaldlab/poppr/issues/214
+  for details).
+
+NEW IMPORTS
+-----------
+
+* Progress bars are now implemented via the `{progressr}` package,
+  which gives the user control over what should be displayed (or not). For
+  example, to get auditory updates instead of a progress bar, you can use the
+  "beepr" package and set `progressr::handlers("beepr")`. This will play an alert
+  for each step (~50) and a final sound. To suppress all progress bars entirely,
+  you can use `progressr::handlers("void")`. These progress bars have replaced
+  the `utils::txtProgressBar()` and `dplyr::progress_estimated()` bars.
+
 poppr 2.8.5
 ===========
 
@@ -6,8 +27,8 @@ CRAN MAINTENANCE
 
 * The output from the `poppr()` function will no longer contain factor columns
   for the population names or the file names. This is due to R 4.0.0 changing
-  behavior with the `stringsAsFactors` default in `data.frame()`. See 
-  (https://github.com/grunwaldlab/poppr/issue/212 for details).
+  behavior with the `stringsAsFactors` default in `data.frame()`. (See 
+  https://github.com/grunwaldlab/poppr/issue/212 for details).
 
 poppr 2.8.4
 ===========
