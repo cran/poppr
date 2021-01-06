@@ -23,7 +23,7 @@ print_command <- function(funk){
 citation(package = "poppr")
 
 ## ----install, eval = FALSE----------------------------------------------------
-#  install.packages("poppr", repos = "http://cloud.r-project.org/")
+#  install.packages("poppr", repos = "https://cloud.r-project.org/")
 
 ## ----install_devtools, eval = FALSE-------------------------------------------
 #  install.packages("devtools")
