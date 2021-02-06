@@ -181,37 +181,37 @@ round.poppr <- Vectorize(function(x){
 # Internal functions utilizing this function:
 # ## none
 #==============================================================================#
-sub_index <- function(pop, sublist="ALL", blacklist=NULL){
+sub_index <- function(pop, sublist="ALL", exclude=NULL){
   numList <- seq(nInd(pop))
   if (is.null(pop(pop))){
     return(numList)
   }
   if(toupper(sublist[1]) == "ALL"){
-    if (is.null(blacklist)){
+    if (is.null(exclude)){
       return(numList)
     } else {
       # filling the sublist with all of the population names.
       sublist <- popNames(pop) 
     }
   }
-  # Treating anything present in blacklist.
-  if (!is.null(blacklist)){
-    # If both the sublist and blacklist are numeric or character.
-    if (is.numeric(sublist) & is.numeric(blacklist) | class(sublist) == class(blacklist)){
-      sublist <- sublist[!sublist %in% blacklist]
-    } else if (is.numeric(sublist) & class(blacklist) == "character"){
-    # if the sublist is numeric and blacklist is a character. eg s=1:10, b="USA"
-      sublist <- sublist[sublist %in% which(!popNames(pop) %in% blacklist)]
+  # Treating anything present in exclude.
+  if (!is.null(exclude)){
+    # If both the sublist and exclude are numeric or character.
+    if (is.numeric(sublist) & is.numeric(exclude) | class(sublist) == class(exclude)){
+      sublist <- sublist[!sublist %in% exclude]
+    } else if (is.numeric(sublist) & class(exclude) == "character"){
+    # if the sublist is numeric and exclude is a character. eg s=1:10, b="USA"
+      sublist <- sublist[sublist %in% which(!popNames(pop) %in% exclude)]
     } else {
       # no sublist specified. Ideal situation
       if(all(popNames(pop) %in% sublist)){
-        sublist <- sublist[-blacklist]
+        sublist <- sublist[-exclude]
       } else {
       # weird situation where the user will specify a certain sublist, yet index
-      # the blacklist numerically. Interpreted as an index of populations in the
+      # the exclude numerically. Interpreted as an index of populations in the
       # whole data set as opposed to the sublist.
-        warning("Blacklist is numeric. Interpreting blacklist as the index of the population in the total data set.")
-        sublist <- sublist[!sublist %in% popNames(pop)[blacklist]]
+        warning("Blacklist is numeric. Interpreting exclude as the index of the population in the total data set.")
+        sublist <- sublist[!sublist %in% popNames(pop)[exclude]]
       }
     }
   }
@@ -224,7 +224,7 @@ sub_index <- function(pop, sublist="ALL", blacklist=NULL){
   }
   sublist <- pop(pop) %in% sublist
   if (sum(sublist) == 0){
-    warning("All items present in Sublist are also present in the Blacklist.\nSubsetting not taking place.")
+    warning("All items present in sublist are also present in exclude.\nSubsetting not taking place.")
     return(seq(nInd(pop)))
   } 
   #cat("Sublist:\n", sublist,"\n")
@@ -863,6 +863,78 @@ bruvos_distance <- function(bruvomat, funk_call = match.call(), add = TRUE,
 
 }
 
+#==============================================================================#
+# Calculate a subset Bruvo's distances from a bruvomat object, segmented into a
+# query and a reference.
+#
+# Public functions utilizing this function:
+# # bruvo.between
+#==============================================================================#
+
+bruvos_between <- function(bruvomat, query_length, funk_call = match.call(), add = TRUE, 
+                            loss = TRUE, by_locus = FALSE){
+  
+  
+  x      <- bruvomat@mat
+  ploid  <- bruvomat@ploidy
+  if (getOption("old.bruvo.model") && ploid > 2 && (add | loss)){
+    msg <- paste("The option old.bruvo.model has been set to TRUE, which does",
+                 "not represent every ordered combinations of alleles in the",
+                 "genome addition or loss models. This could result in",
+                 "potentially incorrect results.",
+                 "\n\n To use every ordered combination of alleles for",
+                 "estimating short genotypes, enter the following command in",
+                 "your R console:",
+                 "\n\n\toptions(old.bruvo.model = FALSE)\n")
+    warning(msg, call. = FALSE, immediate. = TRUE)
+  }
+  replen <- bruvomat@replen
+  x[is.na(x)] <- 0
+
+  # Dividing the data by the repeat length of each locus.
+  x <- x / rep(replen, each = ploid * nrow(x))
+  x <- matrix(as.integer(round(x)), ncol = ncol(x))
+
+  # Getting the permutation vector.
+  perms <- .Call("permuto", ploid, PACKAGE = "poppr")
+
+  # Calculating bruvo's distance over each locus. 
+  distmat <- .Call("bruvo_between", 
+                   x,     # data matrix
+                   perms, # permutation vector (0-indexed)
+                   ploid, # maximum ploidy
+                   add,   # Genome addition model switch
+                   loss,  # Genome loss model switch
+                   getOption("old.bruvo.model"), # switch to use unordered genotypes
+		   query_length, # length of the original query
+                   PACKAGE = "poppr")
+
+  # If there are missing values, the distance returns 100, which means that the
+  # comparison is not made. These are changed to NA.
+  distmat[distmat == 100] <- NA
+
+  if (!by_locus){
+    # Obtaining the average distance over all loci.
+    avg.dist.vec <- apply(distmat, 1, mean, na.rm=TRUE)
+  
+    # presenting the information in a lower triangle distance matrix.
+    dist.mat <- matrix(ncol=nrow(x), nrow=nrow(x))
+    dist.mat[which(lower.tri(dist.mat)==TRUE)] <- avg.dist.vec
+    dist.mat <- as.dist(dist.mat)
+  
+    attr(dist.mat, "Labels") <- bruvomat@ind.names
+    attr(dist.mat, "method") <- "Bruvo"
+    attr(dist.mat, "call")   <- funk_call
+    return(dist.mat)    
+  } else {
+    n    <- nrow(x)
+    cols <- seq(ncol(distmat))
+    labs <- bruvomat@ind.names
+    meth <- "Bruvo"
+    return(lapply(cols, function(i) make_attributes(distmat[, i], n, labs, meth, funk_call)))
+  }
+
+}
 
 #==============================================================================#
 # match repeat lengths to loci present in data
@@ -1542,52 +1614,55 @@ make_poppr_plot_title <- function(samp, file = NULL, N = NULL, pop = NULL){
   return(plot_title)
 }
 
-#==============================================================================#
-# fill a single genotype with zeroes if the number of alleles is maxploid.
-#
-# Public functions utilizing this function:
-# # none
-#
-# Private functions utilizing this function:
-# # fill_zero_locus
-#==============================================================================#
-fill_zero <- function(x, maxploid, mat = FALSE){
+#' Pad a single locus genotype with zeroes according the maximum ploidy.
+#'
+#' @param x a vector of alleles for a single individual at a single locus
+#' @param maxploid the maximum ploidy to pad
+#' @param mat_type if the final output is to be a matrix with one column per
+#'   allele, what type of matrix should it be. Acceptable are: numeric and character.
+#' @noRd
+#' @return a vector of length 1 (default) or of length maxploid.
+#' @seealso used by: [fill_zero_locus()]
+fill_zero <- function(x, maxploid, mat_type = character(0)){
   if (length(x) < maxploid){
-    if (!mat){
+    # If the genotype is less than the max ploidy, fill it with a zero
+    if (length(mat_type)) {
+      fill <- as(0L, mat_type)
+      pad  <- rep(fill, maxploid - length(x))
+      res  <- c(pad, as(x, mat_type))
+    } else {
       zeroes <- paste(rep(0, maxploid - length(x)), collapse = "/")
       res    <- paste(x, collapse = "/")
       res    <- paste(zeroes, res, sep = "/")     
-    } else {
-      res <- c(rep(0.0, maxploid - length(x)), as.numeric(x))
     }
- 
   } else {
-    if (!mat){
-      res <- paste(x, collapse = "/")
+    # If the genotype is the right format_type, either collapse it or return it
+    if (length(mat_type)){
+      res <- as(x, mat_type)
     } else {
-      res <- as.numeric(x)
+      res <- paste(x, collapse = "/")
     }
   }
   return(res)
 }
 
-#==============================================================================#
-# Fill short genotypes in a character vector with zeroes.
-#
-# Public functions utilizing this function:
-# # none
-#
-# Private functions utilizing this function:
-# # generate_bruvo_mat
-#==============================================================================#
-fill_zero_locus <- function(x, sep = "/", maxploid, mat = FALSE){
+#' Fill short genotypes in a character vector with zeroes
+#'
+#' @param x a character vector of genotypes at a single locus, separated by "/"
+#' @param maxploid the maximum ploidy to pad
+#' @param mat_type if the final output is to be a matrix with one column per
+#'   allele, what type of matrix should it be. Acceptable are: numeric and character.
+#' @noRd
+#' @return a vector of length 1 (default) or of length maxploid.
+#' @seealso uses: [fill_zero_locus()], used by: [create_bruvo_mat()]
+fill_zero_locus <- function(x, sep = "/", maxploid, mat_type = character(0)){
   x <- strsplit(x, sep)
-  if (mat){
-    result <- numeric(maxploid)
+  if (length(mat_type)) {
+    result <- vector(mode = mat_type, length = maxploid)
   } else {
     result <- character(1)
   }
-  return(t(vapply(x, fill_zero, result, maxploid, mat)))
+  return(t(vapply(x, fill_zero, result, maxploid, mat_type)))
 }
 
 #==============================================================================#
@@ -1636,19 +1711,32 @@ fill_zero_locus <- function(x, sep = "/", maxploid, mat = FALSE){
 # sample_10         0         0        41        31         0        17        30        57
 #
 #
-# Public functions utilizing this function:
-# # none
-#
-# Private functions utilizing this function:
-# # none
-#==============================================================================#
-generate_bruvo_mat <- function(x, maxploid, sep = "/", mat = FALSE){
-  if (mat){
-    result <- matrix(numeric(nrow(x)*maxploid), ncol = maxploid, nrow = nrow(x))
+
+#' Fill short genotypes in a data frame with zeroes
+#'
+#' @param x a data frame of character vectors representing genotypes with alleles separated by "/"
+#' @param maxploid the maximum ploidy to pad
+#' @param mat if the final output is to be a matrix with one column per
+#'   allele, what type of matrix should it be. Acceptable are: numeric and character.
+#'   Default is an empty character vector, indicating that alleles should be concatenated.
+#' @noRd
+#' @return a vector of length 1 (default) or of length maxploid.
+#' @seealso uses: [fill_zero_locus()], used by: [genind2genalex()]
+generate_bruvo_mat <- function(x, maxploid, sep = "/", mat_type = character(0)){
+  # --- 2021-01-30 ---
+  # mat has been renamed to mat_type and recast as a character vector. For
+  # details, see https://github.com/grunwaldlab/poppr/issues/108
+  # ------------------
+  # Create a template for vapply to fill in with the result. 
+  if (length(mat_type)) {
+    # Each locus will be a matrix with one allele per column
+    fill  <- vector(mode = mat_type, length = nrow(x) * maxploid)
+    result <- matrix(fill, ncol = maxploid, nrow = nrow(x))
   } else {
+    # Each locus will be a character vector with all the alleles
     result <- character(nrow(x))
   }
-  res <- vapply(x, fill_zero_locus, result, sep, maxploid, mat)
+  res <- vapply(x, fill_zero_locus, result, sep, maxploid, mat_type)
   if (length(dim(res)) > 2){
     redim    <- dim(res)
     dim(res) <- c(redim[1], redim[2]*redim[3])
@@ -1659,7 +1747,7 @@ generate_bruvo_mat <- function(x, maxploid, sep = "/", mat = FALSE){
   } else {
     colnames(res) <- colnames(x)
   }
-  if (!mat){
+  if (length(mat_type) == 0) {
     res[grep("NA", res)] <- NA_character_
   }
   rownames(res) <- rownames(x)
