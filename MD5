@@ -1,6 +1,6 @@
-e0e306fc6bb972ea7b008dde57716359 *DESCRIPTION
+f76bd7ccd5cd2c4f2748a6b79a4ef2bb *DESCRIPTION
 761882e4701a2d0a42e184355cbda878 *NAMESPACE
-f5c7d5184ba2bca8fbd3f7f8649636b7 *NEWS.md
+99607fed9ce8b407aa335e5a724b519e *NEWS.md
 7b2013b3af31621afaead7d313594905 *R/Index_calculations.r
 ded5644e4ab5b3f49860c70eaea20f21 *R/aaaMLGclass.R
 f60155a747d0bcda0a945539d507f805 *R/aaaMLGmethods.R
@@ -32,8 +32,8 @@ b995f761c7907c7b790d17bb09949632 *R/upgma.R
 32df664c9241d47d14b624663b6e6503 *R/visualizations.r
 8792e878a71a658810fb286861f0067a *R/zzz.r
 95808f21152e53269200c0670d46e6b6 *README.md
-64511d3c5c6ad2107db22e95098f9c77 *build/partial.rdb
-bf8716a79fce2e97bc5d3f7f744d651f *build/vignette.rds
+567123aa339de017cde05e7d3e47d09f *build/partial.rdb
+31f1f78af299146da8c07f157deebad8 *build/vignette.rds
 2b8cae6678323c47a7fff5b80925b5ad *data/Aeut.rda
 58ec81a9378e578e50abcd56340fcd46 *data/Pinf.rda
 839dda7af297fd0e47efbca2cdf9df27 *data/Pram.rda
@@ -44,7 +44,7 @@ bf8716a79fce2e97bc5d3f7f744d651f *build/vignette.rds
 7169b66d0eacd38d31785206b4729058 *inst/CITATION
 723ae7486dc440805f46ac94f3df0200 *inst/doc/algo.R
 395665fe58cc7d809f07496659788215 *inst/doc/algo.Rnw
-0545d89dca63150caa7d0250f35e259e *inst/doc/algo.pdf
+83089a6aa1132b32114a747814e21225 *inst/doc/algo.pdf
 2e1ba95b8537037a21ed3cb8d507f28d *inst/files/rootrot.csv
 502952e55e2a1dff9eb742ac05282e12 *inst/files/rootrot2.csv
 ba2b4146131f64837c485ce100bbdbf1 *inst/files/simulated.dat
@@ -173,7 +173,7 @@ fe2a351fccdc4f7368d67a738437ea0e *tests/testthat/test-popsub.R
 07a06ee9c2bb10323031e9cbead7834f *tests/testthat/test-sampling.R
 884315fb1dc088a6bc936f1d44338c7d *tests/testthat/test-snpclone.R
 01445dbbf0d5178b30337ecc088e2aff *tests/testthat/test-trees.R
-80fe9d381aa623e48a48f0b5c7391062 *tests/testthat/test-values.R
+25331888ecf47b0084160c4be6b851a8 *tests/testthat/test-values.R
 9acfddb289398b6a5ba139f02d7f8b8b *tests/testthat/test-winia.R
 e4a0cea34697587ee0be5861a6eab861 *vignettes/algo-concordance.tex
 395665fe58cc7d809f07496659788215 *vignettes/algo.Rnw
