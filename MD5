@@ -1,6 +1,6 @@
-8d239e97b8bdf3092ca516a68d1093c8 *DESCRIPTION
+9e39adf2ed508689cb607a681adc1af5 *DESCRIPTION
 761882e4701a2d0a42e184355cbda878 *NAMESPACE
-9ff1f0b6d6e779a4f0d0dfe016a422ef *NEWS.md
+33c1a2fcc0b4180c5b9c7368aac9e98d *NEWS.md
 e9db2537c949185b63b3095f1f191235 *R/Index_calculations.r
 ded5644e4ab5b3f49860c70eaea20f21 *R/aaaMLGclass.R
 f60155a747d0bcda0a945539d507f805 *R/aaaMLGmethods.R
@@ -30,10 +30,10 @@ a665891a4b2441c732e3da4dc455a4bc *R/round_robin.R
 4f73459e23c88559bd2773bcb80878f0 *R/sample_schemes.r
 b995f761c7907c7b790d17bb09949632 *R/upgma.R
 32df664c9241d47d14b624663b6e6503 *R/visualizations.r
-8792e878a71a658810fb286861f0067a *R/zzz.r
+b5e7c3f8482a1f24bfa840a1e8212003 *R/zzz.r
 cb4adaaf26bc3b04126189bb2635e63d *README.md
-8faf250d78a120ba4c7ea2186efddd24 *build/partial.rdb
-633c94c5aaf7bd86940ca35cb129ebe1 *build/vignette.rds
+20c8d3f97d93e2e318a22508275b5a02 *build/partial.rdb
+149c87cc33674b25cfbdacf2d0672285 *build/vignette.rds
 2b8cae6678323c47a7fff5b80925b5ad *data/Aeut.rda
 58ec81a9378e578e50abcd56340fcd46 *data/Pinf.rda
 839dda7af297fd0e47efbca2cdf9df27 *data/Pram.rda
@@ -44,7 +44,7 @@ cb4adaaf26bc3b04126189bb2635e63d *README.md
 590c786b4c64d7436d8f49182d1cdc17 *inst/CITATION
 723ae7486dc440805f46ac94f3df0200 *inst/doc/algo.R
 dc5aeb8a68e69e1332e9a8ef502edfe5 *inst/doc/algo.Rnw
-21e0de7eec92bbae65131ba6f9f984da *inst/doc/algo.pdf
+f7f88959b1eee202e63e42201927ad73 *inst/doc/algo.pdf
 2e1ba95b8537037a21ed3cb8d507f28d *inst/files/rootrot.csv
 502952e55e2a1dff9eb742ac05282e12 *inst/files/rootrot2.csv
 ba2b4146131f64837c485ce100bbdbf1 *inst/files/simulated.dat
